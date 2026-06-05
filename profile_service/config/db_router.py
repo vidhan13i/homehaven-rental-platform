@@ -1,4 +1,8 @@
-class Profiles_appRouter:
+class ProfilesRouter:
+    """
+    Routes all DB operations for the 'profiles_app' app
+    to the dedicated 'profiles_app' database.
+    """
     route_app_labels = {"profiles_app"}
 
     def db_for_read(self, model, **hints):

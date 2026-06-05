@@ -44,6 +44,7 @@ Thumbs.db
 # ─── IDE & Editors ────────────────────────────────────────────────
 .idea/
 .vscode/
+*.iml
 *.swp
 *.swo
 *~
