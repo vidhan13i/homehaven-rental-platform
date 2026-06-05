@@ -1,6 +1,8 @@
 from django.core.management.base import BaseCommand
-from ..building.models.building import Building
-from reviews.reviews.models.reviews import Review
+# ✅ FIXED: Reviews is a separate microservice — it CANNOT import Building model
+# from building_service. In microservices, services communicate via APIs, not imports.
+# Review.building_ID is a plain UUIDField (not a ForeignKey), so we use UUIDs directly.
+from reviews.models.reviews import Review
 from datetime import date, timedelta
 import random
 import uuid
@@ -14,50 +16,52 @@ class Command(BaseCommand):
             '--count',
             type=int,
             default=50,
-            help='Total number of reviews to create across all buildings'
+            help='Total number of reviews to create'
         )
-
         parser.add_argument(
             '--per-building',
             type=int,
             default=None,
             help='Number of reviews per building (overrides --count)'
         )
-
         parser.add_argument(
             '--building-id',
             type=str,
             default=None,
-            help='Create reviews only for specific building ID'
+            help='Create reviews only for a specific building UUID'
+        )
+        parser.add_argument(
+            '--building-ids',
+            type=str,
+            default=None,
+            help='Comma-separated list of real building UUIDs from building_service'
         )
 
     def handle(self, *args, **options):
         count = options['count']
         per_building = options['per_building']
         building_id = options['building_id']
+        building_ids_raw = options['building_ids']
 
-        # Fetch buildings from database
+        # ── Determine which building UUIDs to use ──────────────────────────
+        # In microservices, reviews_service doesn't have access to the building DB.
+        # You can pass real building UUIDs from building_service via --building-ids,
+        # or we generate random UUIDs for seeding/testing purposes.
         if building_id:
-            # Create reviews for specific building
-            buildings = Building.objects.filter(id=building_id)
-            if not buildings.exists():
-                self.stdout.write(
-                    self.style.ERROR(f'Building with ID {building_id} not found!')
-                )
-                return
+            building_uuids = [uuid.UUID(building_id)]
+        elif building_ids_raw:
+            building_uuids = [uuid.UUID(b.strip()) for b in building_ids_raw.split(',')]
         else:
-            # Get all buildings
-            buildings = Building.objects.all()
-
-        if not buildings.exists():
+            # Generate 10 random UUIDs (for dev/testing when building_service data isn't known)
+            building_uuids = [uuid.uuid4() for _ in range(10)]
             self.stdout.write(
-                self.style.ERROR('No buildings found! Please create buildings first.')
+                self.style.WARNING(
+                    'No --building-ids provided. Using random UUIDs for seeding.\n'
+                    'Tip: Pass real building IDs with --building-ids=<uuid1>,<uuid2>,...'
+                )
             )
-            return
 
-        self.stdout.write(
-            self.style.SUCCESS(f'Found {buildings.count()} buildings in database')
-        )
+        self.stdout.write(f'Seeding reviews for {len(building_uuids)} building(s)...')
 
         # Review content templates
         titles = [
@@ -120,53 +124,38 @@ class Command(BaseCommand):
         created_count = 0
 
         if per_building:
-            # Create specific number of reviews per building
-            for building in buildings:
+            for b_uuid in building_uuids:
                 for _ in range(per_building):
-                    self._create_review(
-                        building, titles, pros_list, cons_list, advice_list
-                    )
+                    self._create_review(b_uuid, titles, pros_list, cons_list, advice_list)
                     created_count += 1
-
                 self.stdout.write(
-                    self.style.SUCCESS(
-                        f'Created {per_building} reviews for: {building.name} (ID: {building.id})'
-                    )
+                    self.style.SUCCESS(f'Created {per_building} reviews for building: {b_uuid}')
                 )
         else:
-            # Distribute reviews across buildings
-            buildings_list = list(buildings)
             for i in range(count):
-                # Randomly select a building but with weighted distribution
-                # (some buildings get more reviews than others - more realistic)
-                building = random.choice(buildings_list)
-
-                self._create_review(
-                    building, titles, pros_list, cons_list, advice_list
-                )
+                b_uuid = random.choice(building_uuids)
+                self._create_review(b_uuid, titles, pros_list, cons_list, advice_list)
                 created_count += 1
-
                 if (i + 1) % 10 == 0:
-                    self.stdout.write(
-                        self.style.SUCCESS(f'Created {i + 1}/{count} reviews...')
-                    )
+                    self.stdout.write(self.style.SUCCESS(f'Created {i + 1}/{count} reviews...'))
 
         self.stdout.write(
             self.style.SUCCESS(
-                f'\n✅ Successfully created {created_count} reviews across {buildings.count()} buildings'
+                f'\n✅ Successfully created {created_count} reviews across {len(building_uuids)} building(s)'
             )
         )
 
         # Show distribution
         self.stdout.write('\n📊 Review Distribution:')
-        for building in buildings:
-            review_count = Review.objects.filter(building_ID=building.id).count()
-            self.stdout.write(f'  - {building.name}: {review_count} reviews')
+        for b_uuid in building_uuids:
+            review_count = Review.objects.filter(building_ID=b_uuid).count()
+            self.stdout.write(f'  - Building {b_uuid}: {review_count} reviews')
 
-    def _create_review(self, building, titles, pros_list, cons_list, advice_list):
+    def _create_review(self, building_uuid, titles, pros_list, cons_list, advice_list):
         """
-        Create a single review for the given building
-        Uses actual building data from the database
+        Create a single review for a given building UUID.
+        Reviews service is a microservice — it doesn't have access to Building model.
+        We store only the building_ID (UUID) and generate realistic fake context.
         """
         # Generate random dates
         move_in = date.today() - timedelta(days=random.randint(365, 1825))  # 1-5 years ago
@@ -189,14 +178,9 @@ class Command(BaseCommand):
         water = round(water, 1)
         maintenance = round(maintenance, 1)
 
-        # Generate financial data based on city/location
-        # More expensive in metros
-        if building.city in ['Mumbai', 'Delhi', 'Bangalore']:
-            starting_rent = random.randint(15000, 50000)
-        elif building.city in ['Pune', 'Hyderabad', 'Chennai']:
-            starting_rent = random.randint(10000, 35000)
-        else:
-            starting_rent = random.randint(8000, 25000)
+        # Generate rent — randomised since we don't have access to building city data
+        # (reviews_service is isolated — no access to building_service database)
+        starting_rent = random.randint(8000, 50000)
 
         rent_increase_percent = random.uniform(0.05, 0.15)  # 5-15% increase
         ending_rent = starting_rent * (1 + rent_increase_percent)
@@ -210,14 +194,16 @@ class Command(BaseCommand):
         else:
             deposit_withheld = None
 
-        # Generate realistic unit number based on building data
-        max_floor = building.no_of_floors if building.no_of_floors else 10
+        # Generate unit number (random since we don't know building's actual floors)
+        max_floor = random.randint(5, 30)
         floor = random.randint(1, max_floor)
         unit_letter = chr(65 + random.randint(0, 7))  # A-H
         unit_no = f"{floor}{unit_letter}-{random.randint(101, 199)}"
 
-        # Create full address with unit
-        full_address = f"Unit {unit_no}, {building.name}, {building.address}, {building.city}, {building.state} - {building.Pin_code}"
+        # Generate a plausible address (no actual building data available in this service)
+        cities = ['Mumbai', 'Delhi', 'Bangalore', 'Pune', 'Hyderabad', 'Chennai', 'Kolkata']
+        city = random.choice(cities)
+        full_address = f"Unit {unit_no}, {random.randint(1, 999)} MG Road, {city}"
 
         # Determine status (mostly submitted for aggregation to work)
         status = random.choices(
@@ -226,8 +212,8 @@ class Command(BaseCommand):
         )[0]
 
         review_data = {
-            'profile_ID': uuid.uuid4(),  # Random user ID
-            'building_ID': building.id,  # ✅ ACTUAL building ID from database
+            'profile_ID': uuid.uuid4(),      # Random user UUID
+            'building_ID': building_uuid,     # ✅ The UUID passed in (from building_service)
             'full_address': full_address,
             'cleanliness_rating': cleanliness,
             'garbage_management_rating': garbage,

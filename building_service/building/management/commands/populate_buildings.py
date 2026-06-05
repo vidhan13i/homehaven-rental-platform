@@ -1,6 +1,7 @@
+# pyrefly: ignore [missing-import]
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
-from building.building.models.building import Building
+from building.models.building import Building
 from datetime import date
 import random
 
