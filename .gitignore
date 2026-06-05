@@ -1,0 +1,61 @@
+# ─── Python ───────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ─── Virtual Environments ─────────────────────────────────────────
+# NEVER commit venv — it's 65MB per service and machine-specific
+venv/
+.venv/
+env/
+ENV/
+
+# ─── Django ───────────────────────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# ─── Environment Variables (SECRET KEYS & PASSWORDS) ─────────────
+# CRITICAL: Never commit .env files
+.env
+.env.*
+*.env
+
+# ─── Docker ───────────────────────────────────────────────────────
+# Ignore local docker overrides
+docker-compose.override.yml
+
+# ─── macOS ────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ─── IDE & Editors ────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ─── Testing & Coverage ───────────────────────────────────────────
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+coverage.xml
+
+# ─── Build artifacts ──────────────────────────────────────────────
+*.egg-info/
+dist/
+build/
