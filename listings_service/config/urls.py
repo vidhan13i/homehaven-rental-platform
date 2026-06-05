@@ -1,12 +1,16 @@
+from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from listings.api_views import (ListingViewSet, PublicListingListView, PublicListingDetailView)
+
+# Views live at listings/api/views.py → import path is listings.api.views
+from listings.api.views import ListingViewSet, PublicListingListView, PublicListingDetailView
 
 router = DefaultRouter()
-router.register(r'listings-service', ListingViewSet, basename='listing')
+router.register(r'listings', ListingViewSet, basename='listing')
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path('public/listings-service/', PublicListingListView.as_view(), name='public-listing-list'),
-    path('public/listings-service/<int:pk>/', PublicListingDetailView.as_view(), name='public-listing-detail'),
+    path('admin/', admin.site.urls),
+    path('api/listings/', include(router.urls)),
+    path('api/listings/public/', PublicListingListView.as_view(), name='public-listing-list'),
+    path('api/listings/public/<int:pk>/', PublicListingDetailView.as_view(), name='public-listing-detail'),
 ]

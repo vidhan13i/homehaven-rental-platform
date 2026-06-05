@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('agent_image_url', models.URLField()),
-                ('agent_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='listings-service.agent')),
+                ('agent_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='listings.agent')),
             ],
             options={
                 'abstract': False,
@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, null=True)),
                 ('is_furnished', models.BooleanField(default=False)),
                 ('is_semi_furnished', models.BooleanField(default=False)),
-                ('agent_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='units', to='listings-service.agent')),
+                ('agent_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='units', to='listings.agent')),
             ],
         ),
         migrations.CreateModel(
@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
                 ('closing_date', models.DateField(blank=True, null=True)),
                 ('lease_term', models.IntegerField(blank=True, null=True)),
                 ('is_listing_verified', models.BooleanField(default=False)),
-                ('unit_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='Listings', to='listings-service.unit')),
+                ('unit_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='Listings', to='listings.unit')),
             ],
             options={
                 'abstract': False,
@@ -87,7 +87,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('image_url', models.CharField(max_length=200)),
-                ('unit_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='listings-service.unit')),
+                ('unit_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='listings.unit')),
             ],
             options={
                 'abstract': False,

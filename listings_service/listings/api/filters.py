@@ -1,6 +1,6 @@
 import django_filters
 from django.db.models import Q
-from listings.listings.models import Listing
+from listings.models import Listing
 
 
 class ListingFilter(django_filters.FilterSet):

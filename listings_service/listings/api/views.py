@@ -6,14 +6,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Avg
 
-from listings.listings.models import Listing
-from listings.listings.api.serializers import (
+from listings.models import Listing
+from listings.api.serializers import (
     ListingSerializer,
     ListingListSerializer,
     ListingCreateUpdateSerializer
 )
-from listings.listings.api.pagination import ListingPagination, StandardResultsSetPagination
-from listings.listings.api.filters import ListingFilter, AvailableListingFilter
+from listings.api.pagination import ListingPagination, StandardResultsSetPagination
+from listings.api.filters import ListingFilter, AvailableListingFilter
 
 
 class ListingViewSet(viewsets.ModelViewSet):

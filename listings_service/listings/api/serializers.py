@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from listings.listings.models import Listing
-from listings.listings.models.unit import Unit
+from listings.models import Listing
+from listings.models.unit import Unit
 
 
 class UnitSerializer(serializers.ModelSerializer):
