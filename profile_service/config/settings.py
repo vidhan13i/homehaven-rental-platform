@@ -18,9 +18,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'profiles_app.apps.ProfilesAppConfig',
+    'rest_framework',
+    'django_filters',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,8 +53,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+# ─── INTER-SERVICE URLs (for making HTTP calls to other microservices) ────────
+BUILDING_SERVICE_URL = os.environ.get('BUILDING_SERVICE_URL', 'http://building_service:8000')
+LISTINGS_SERVICE_URL = os.environ.get('LISTINGS_SERVICE_URL', 'http://listings_service:8000')
+REVIEWS_SERVICE_URL = os.environ.get('REVIEWS_SERVICE_URL', 'http://reviews_service:8000')
+
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
-# HOST='db' when running in Docker, 'localhost' when running locally
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', '5433')
 DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
