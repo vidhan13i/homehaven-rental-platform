@@ -10,3 +10,4 @@ CREATE DATABASE profiles_app;
 CREATE DATABASE application;
 CREATE DATABASE building;
 CREATE DATABASE reviews;
+CREATE DATABASE auth_db;

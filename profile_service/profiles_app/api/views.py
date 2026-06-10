@@ -5,7 +5,7 @@ import string
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.conf import settings
@@ -33,13 +33,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Profile.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = ProfileSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['is_email_verified', 'gender']
     search_fields = ['first_name', 'last_name', 'email', 'userID']
     ordering_fields = ['created_at', 'first_name', 'last_name']
     ordering = ['-created_at']
+
+    def get_permissions(self):
+        if self.action in ['create', 'by_email']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.action == 'list':

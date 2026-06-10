@@ -1,7 +1,7 @@
 from rest_framework import viewsets, generics, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Count, Q
 
@@ -43,8 +43,12 @@ class BuildingViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Building.objects.prefetch_related('images_set').all()
-    permission_classes = [AllowAny]
     serializer_class = BuildingSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'stats', 'cities', 'nearby', 'top_rated', 'images']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = BuildingFilter
@@ -202,7 +206,11 @@ class BuildingImageViewSet(viewsets.ModelViewSet):
     """
     queryset = Images.objects.select_related('build_ID').all()
     serializer_class = BuildingImageSerializer
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['build_ID']

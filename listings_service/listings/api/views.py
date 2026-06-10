@@ -1,7 +1,7 @@
 from rest_framework import viewsets, generics, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Avg, Count
@@ -57,8 +57,12 @@ class ListingViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Listing.objects.select_related('unit_ID', 'unit_ID__agent_ID').all()
-    permission_classes = [AllowAny]
     serializer_class = ListingSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'available', 'verified', 'stats']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     pagination_class = ListingPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ListingFilter
@@ -198,8 +202,12 @@ class UnitViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Unit.objects.select_related('agent_ID').prefetch_related('images').all()
-    permission_classes = [AllowAny]
     serializer_class = UnitSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'listings', 'images']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = UnitFilter
@@ -280,8 +288,12 @@ class AgentViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Agent.objects.prefetch_related('units', 'agentimages_set').all()
-    permission_classes = [AllowAny]
     serializer_class = AgentSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'units', 'listings', 'verified', 'stats']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = AgentFilter
@@ -388,7 +400,11 @@ class UnitImageViewSet(viewsets.ModelViewSet):
     """
     queryset = Images.objects.select_related('unit_ID').all()
     serializer_class = UnitImageSerializer
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['unit_ID']
@@ -402,7 +418,11 @@ class AgentImageViewSet(viewsets.ModelViewSet):
     """
     queryset = AgentImages.objects.select_related('agent_ID').all()
     serializer_class = AgentImageSerializer
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['agent_ID']

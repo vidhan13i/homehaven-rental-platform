@@ -50,6 +50,7 @@ services:
       - application_service
       - building_service
       - reviews_service
+      - auth_service
     networks:
       - rental_network
     restart: unless-stopped     # Restart automatically if it crashes
@@ -65,6 +66,7 @@ services:
       - DB_PORT=5432            # Internal Docker port (not the 5432 exposed to Mac)
       - DB_PASSWORD=postgres123
       - SECRET_KEY=listings-super-secret-key-replace-this
+      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
       - DEBUG=True
     depends_on:
       db:
@@ -84,6 +86,7 @@ services:
       - DB_PORT=5432
       - DB_PASSWORD=postgres123
       - SECRET_KEY=profile-super-secret-key-replace-this
+      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
       - DEBUG=True
     depends_on:
       db:
@@ -103,6 +106,7 @@ services:
       - DB_PORT=5432
       - DB_PASSWORD=postgres123
       - SECRET_KEY=application-super-secret-key-replace-this
+      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
       - DEBUG=True
     depends_on:
       db:
@@ -122,6 +126,7 @@ services:
       - DB_PORT=5432
       - DB_PASSWORD=postgres123
       - SECRET_KEY=building-super-secret-key-replace-this
+      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
       - DEBUG=True
     depends_on:
       db:
@@ -141,6 +146,7 @@ services:
       - DB_PORT=5432
       - DB_PASSWORD=postgres123
       - SECRET_KEY=reviews-super-secret-key-replace-this
+      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
       - DEBUG=True
     depends_on:
       db:
@@ -148,6 +154,27 @@ services:
     networks:
       - rental_network
     restart: unless-stopped
+
+  # ─── AUTH SERVICE ──────────────────────────────────────────────────────────
+  # Handles: User authentication, JWT issuance, registration
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_PASSWORD=postgres123
+      - SECRET_KEY=auth-super-secret-key-replace-this
+      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
+      - DEBUG=True
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - rental_network
+    restart: unless-stopped
+
 
 # ─── VOLUMES ───────────────────────────────────────────────────────────────
 # Named volumes persist data even when containers are stopped/rebuilt.

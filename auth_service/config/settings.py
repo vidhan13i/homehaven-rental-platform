@@ -1,12 +1,10 @@
-"""
-Django settings for profile_service.
-"""
 from pathlib import Path
 import os
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-profile-dev-key-change-in-prod')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-auth-dev-key-change-in-prod')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
@@ -17,10 +15,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'profiles_app.apps.ProfilesAppConfig',
     'rest_framework',
-    'django_filters',
     'corsheaders',
+    'authentication.apps.AuthenticationConfig',
 ]
 
 MIDDLEWARE = [
@@ -53,36 +50,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'shared-jwt-secret-key-12345')
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'common.authentication.TrustedJWTAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
-}
-
-CORS_ALLOW_ALL_ORIGINS = True
-
-# ─── INTER-SERVICE URLs (for making HTTP calls to other microservices) ────────
-BUILDING_SERVICE_URL = os.environ.get('BUILDING_SERVICE_URL', 'http://building_service:8000')
-LISTINGS_SERVICE_URL = os.environ.get('LISTINGS_SERVICE_URL', 'http://listings_service:8000')
-REVIEWS_SERVICE_URL = os.environ.get('REVIEWS_SERVICE_URL', 'http://reviews_service:8000')
-
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
+# ─── DATABASE CONFIGURATION ──────────────────────────────────────────────────
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', '5433')
 DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
@@ -96,9 +64,9 @@ DATABASES = {
         "HOST": DB_HOST,
         "PORT": DB_PORT,
     },
-    "profiles_app": {
+    "auth_db": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "profiles_app",
+        "NAME": "auth_db",
         "USER": "postgres",
         "PASSWORD": DB_PASSWORD,
         "HOST": DB_HOST,
@@ -106,13 +74,44 @@ DATABASES = {
     },
 }
 
-DATABASE_ROUTERS = ["config.db_router.ProfilesRouter"]
+DATABASE_ROUTERS = ["config.db_router.AuthRouter"]
 
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+# Custom User Model with UUID Primary Key
+AUTH_USER_MODEL = 'authentication.User'
+
+# ─── REST FRAMEWORK & SIMPLE JWT ──────────────────────────────────────────────
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': os.environ.get('JWT_SECRET_KEY', 'shared-jwt-secret-key-12345'),
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}
+
+# ─── INTER-SERVICE URLs ───────────────────────────────────────────────────────
+PROFILE_SERVICE_URL = os.environ.get('PROFILE_SERVICE_URL', 'http://profile_service:8000')
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
+CORS_ALLOW_HEADERS = [
+    'accept', 'accept-encoding', 'authorization', 'content-type',
+    'dnt', 'origin', 'user-agent', 'x-csrftoken', 'x-requested-with',
 ]
 
 LANGUAGE_CODE = 'en-us'
