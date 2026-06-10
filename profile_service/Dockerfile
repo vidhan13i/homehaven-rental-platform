@@ -15,5 +15,5 @@ COPY . .
 
 EXPOSE 8000
 
-# gunicorn: production-grade WSGI server (replaces "python manage.py runserver")
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "config.wsgi:application"]
+# Use runserver in dev so Django serves static files (Admin CSS, DRF UI) and auto-reloads
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -1,0 +1,671 @@
+{
+  "info": {
+    "_postman_id": "8d655f46-dc61-46ab-a988-cb942c7e0cde",
+    "name": "Rental Microservices API",
+    "description": "Comprehensive Postman collection to test the 5 microservices in the Rental application, routing via the Nginx Gateway on http://localhost:8000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Profile Service",
+      "item": [
+        {
+          "name": "List Profiles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profiles/profiles/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "profiles",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profiles/profiles/a7b6c8d9-0001-4000-a000-000000000001/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "profiles",
+                "a7b6c8d9-0001-4000-a000-000000000001",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile Reviews (Inter-service)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profiles/profiles/a7b6c8d9-0001-4000-a000-000000000001/reviews/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "profiles",
+                "a7b6c8d9-0001-4000-a000-000000000001",
+                "reviews",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile Applications (Inter-service)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profiles/profiles/a7b6c8d9-0001-4000-a000-000000000001/applications/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "profiles",
+                "a7b6c8d9-0001-4000-a000-000000000001",
+                "applications",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userID\": \"new_renter\",\n  \"first_name\": \"Michael\",\n  \"last_name\": \"Scott\",\n  \"email\": \"michael.scott@example.com\",\n  \"DOB\": \"1975-03-15\",\n  \"phone_number\": 555666777,\n  \"gender\": \"M\",\n  \"ethnicity\": \"American\",\n  \"is_email_verified\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profiles/profiles/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "profiles",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"michael.scott@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profiles/otp/request_otp/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "otp",
+                "request_otp",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"michael.scott@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/profiles/otp/verify_otp/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "otp",
+                "verify_otp",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/profiles/profiles/stats/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "profiles",
+                "profiles",
+                "stats",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Building Service",
+      "item": [
+        {
+          "name": "List Buildings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/buildings/buildings/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "buildings",
+                "buildings",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Building Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/buildings/buildings/b1e2f3a4-0001-4000-b000-000000000001/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "buildings",
+                "buildings",
+                "b1e2f3a4-0001-4000-b000-000000000001",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Top-Rated Buildings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/buildings/buildings/top-rated/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "buildings",
+                "buildings",
+                "top-rated",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Building",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Skyline View Apartments\",\n  \"address\": \"555 Skyline Rd\",\n  \"slug\": \"skyline-view-apartments\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"Pin_code\": 10002,\n  \"latitude\": 40.7200,\n  \"longitude\": -74.0100,\n  \"built_year\": \"2022-04-10\",\n  \"no_of_units\": 60,\n  \"no_of_floors\": 10,\n  \"is_gym\": true,\n  \"is_swimming\": true,\n  \"is_garden\": false,\n  \"is_elevator\": true,\n  \"is_RERA_verified\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/buildings/buildings/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "buildings",
+                "buildings",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Listings Service",
+      "item": [
+        {
+          "name": "List Listings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/listings/listings/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "listings",
+                "listings",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Available Listings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/listings/listings/available/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "listings",
+                "listings",
+                "available",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Listing Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/listings/listings/c1d2e3f4-0001-4000-c000-000000000001/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "listings",
+                "listings",
+                "c1d2e3f4-0001-4000-c000-000000000001",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Listing Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/listings/listings/stats/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "listings",
+                "listings",
+                "stats",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Units",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/listings/units/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "listings",
+                "units",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Agents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/listings/agents/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "listings",
+                "agents",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Reviews Service",
+      "item": [
+        {
+          "name": "List Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reviews/reviews/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "reviews",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Review Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/reviews/reviews/stats/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "reviews",
+                "stats",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile_ID\": \"a7b6c8d9-0001-4000-a000-000000000001\",\n  \"building_ID\": \"b1e2f3a4-0002-4000-b000-000000000002\",\n  \"full_address\": \"Unit 12, 456 Park Ave, Brooklyn, NY 11201\",\n  \"cleanliness_rating\": 4.0,\n  \"garbage_management_rating\": 4.5,\n  \"neighbours_rating\": 3.5,\n  \"water_supply_rating\": 4.0,\n  \"building_maintenance_rating\": 4.0,\n  \"Title\": \"Lovely building with very nice views\",\n  \"Pros\": \"Great views of Brooklyn, nice neighbors.\",\n  \"Cons\": \"Elevator undergoes maintenance frequently.\",\n  \"Advice\": \"Verify deposit conditions explicitly in the lease.\",\n  \"move_in_date\": \"2024-01-01\",\n  \"is_received_deposit\": true,\n  \"total_deposit\": 4200.0,\n  \"is_pet_friendly\": true,\n  \"starting_rent\": 4000,\n  \"ending_rent\": 4200,\n  \"unit_no\": \"12\",\n  \"status\": \"submitted\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/reviews/reviews/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "reviews",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Application Service",
+      "item": [
+        {
+          "name": "List Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications/applications/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "applications",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Applicants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications/applicants/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "applicants",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Applicant Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile_ID\": \"a7b6c8d9-0003-4000-a000-000000000003\",\n  \"employer\": \"Dunder Mifflin\",\n  \"job_title\": \"Sales Representative\",\n  \"job_start_date\": \"2020-03-01\",\n  \"credit_score\": 710,\n  \"income\": 85000.0,\n  \"savings\": 12000.0,\n  \"expected_movein_date\": \"2026-08-01\",\n  \"reason\": \"Moving closer to branch office.\",\n  \"has_rented_before\": true,\n  \"rental_history\": {\n    \"address\": \"321 Elm St, Scranton, PA 18503\",\n    \"move_in\": \"2020-03-01\",\n    \"move_out\": \"2026-07-31\"\n  },\n  \"marital_status\": false,\n  \"children\": false,\n  \"emergency_info\": {\n    \"name\": \"Dwight Schrute\",\n    \"email\": \"dwight@dundermifflin.com\",\n    \"phone\": \"555-444-3333\",\n    \"relationship\": \"Colleague\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications/applicants/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "applicants",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"applicant_ID\": \"<APPLICANT_UUID_HERE>\",\n  \"unit_ID\": \"c1d2e3f4-0003-4000-c000-000000000003\",\n  \"building_ID\": \"b1e2f3a4-0003-4000-b000-000000000003\",\n  \"lease_term\": \"12 months\",\n  \"resident_info\": {\n    \"name\": \"Alex Jones\",\n    \"gender\": \"other\",\n    \"dob\": \"1988-12-10\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/applications/applications/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "applications",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Application",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications/applications/<APPLICATION_UUID_HERE>/submit/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "applications",
+                "<APPLICATION_UUID_HERE>",
+                "submit",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Application",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/applications/applications/<APPLICATION_UUID_HERE>/approve/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "applications",
+                "applications",
+                "<APPLICATION_UUID_HERE>",
+                "approve",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}

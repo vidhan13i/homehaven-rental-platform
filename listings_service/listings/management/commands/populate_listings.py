@@ -1,175 +1,140 @@
-"""
-Management command to populate the database with sample listing data
-
-Usage:
-    python manage.py populate_listings
-    python manage.py populate_listings --count 100
-    python manage.py populate_listings --clear
-"""
-
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta
 import random
+import uuid
 
 from listings.models.listing import Listing
 from listings.models.unit import Unit
-
+from listings.models.agent import Agent
+from listings.models.image import Images
 
 class Command(BaseCommand):
-    help = 'Populates the database with sample listing data'
+    help = 'Populates the listings database with 1000 units and listings'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--count',
-            type=int,
-            default=50,
-            help='Number of listings-service to create (default: 50)'
-        )
-        parser.add_argument(
             '--clear',
             action='store_true',
-            help='Clear existing listings-service before populating'
+            help='Clear existing listings and units before populating'
         )
 
     def handle(self, *args, **options):
-        count = options['count']
-        clear = options['clear']
-
-        if clear:
-            self.stdout.write('Clearing existing listings-service...')
+        if options['clear']:
+            self.stdout.write('Clearing existing listings and units...')
             Listing.objects.all().delete()
-            self.stdout.write(self.style.SUCCESS('Cleared all listings-service'))
+            Unit.objects.all().delete()
+            self.stdout.write(self.style.SUCCESS('Cleared all listings and units'))
 
-        # First, ensure we have some units
-        self.create_sample_units()
-
-        # Create listings-service
-        self.stdout.write(f'Creating {count} sample listings-service...')
-
-        units = list(Unit.objects.all())
-        if not units:
-            self.stdout.write(self.style.ERROR('No units available. Please create units first.'))
-            return
-
-        listings_created = 0
-        for i in range(count):
-            listing = self.create_sample_listing(units)
-            if listing:
-                listings_created += 1
-                if listings_created % 10 == 0:
-                    self.stdout.write(f'Created {listings_created} listings-service...')
-
-        self.stdout.write(
-            self.style.SUCCESS(f'Successfully created {listings_created} listings-service')
-        )
-
-    def create_sample_units(self):
-        """Create sample units if they don't exist"""
-        if Unit.objects.count() > 0:
-            return
-
-        self.stdout.write('Creating sample units...')
-
-        # First, ensure we have at least one agent
-        from listings.models.agent import Agent
-
-        agent = Agent.objects.first()
-        if not agent:
-            self.stdout.write('Creating sample agent...')
-            agent = Agent.objects.create(
-                first_name='John',
-                last_name='Smith',
-                email='john.smith@realestate.com',
-                phone_number=555123,
-                agent_organization='Prime Realty Group',
-                agent_experience=5,
-                is_agent_verified=True
+        # Ensure we have a few agents
+        agents = []
+        agent_names = [
+            ('John', 'Smith', 'Prime Realty'),
+            ('Sarah', 'Connor', 'Apex Management'),
+            ('David', 'Miller', 'Metro Housing'),
+            ('Emma', 'Wilson', 'Summit Properties')
+        ]
+        
+        for fname, lname, org in agent_names:
+            agent_id = uuid.uuid5(uuid.NAMESPACE_DNS, f"agent-{fname}-{lname}")
+            agent, created = Agent.objects.get_or_create(
+                id=agent_id,
+                defaults={
+                    'first_name': fname,
+                    'last_name': lname,
+                    'email': f"{fname.lower()}.{lname.lower()}@example.com",
+                    'phone_number': random.randint(1000000, 9999999),
+                    'agent_organization': org,
+                    'agent_experience': random.randint(2, 15),
+                    'is_agent_verified': True
+                }
             )
-            self.stdout.write(self.style.SUCCESS('Created sample agent'))
+            agents.append(agent)
 
-        unit_data = [
-            {'full_address': '123 Main St, New York, NY 10001', 'unit_no': '4B', 'bedrooms': 2, 'bathrooms': 1},
-            {'full_address': '456 Park Ave, Brooklyn, NY 11201', 'unit_no': '12', 'bedrooms': 3, 'bathrooms': 2},
-            {'full_address': '789 Broadway, Queens, NY 11372', 'unit_no': '3A', 'bedrooms': 1, 'bathrooms': 1},
-            {'full_address': '321 Elm St, Bronx, NY 10451', 'unit_no': '5C', 'bedrooms': 2, 'bathrooms': 2},
-            {'full_address': '654 Oak Ave, Manhattan, NY 10002', 'unit_no': '2D', 'bedrooms': 3, 'bathrooms': 2},
-            {'full_address': '987 Pine Rd, Staten Island, NY 10301', 'unit_no': '8F', 'bedrooms': 2, 'bathrooms': 1},
-            {'full_address': '147 Maple Dr, Brooklyn, NY 11215', 'unit_no': '6E', 'bedrooms': 1, 'bathrooms': 1},
-            {'full_address': '258 Cedar Ln, Queens, NY 11375', 'unit_no': '9G', 'bedrooms': 4, 'bathrooms': 3},
-            {'full_address': '369 Birch St, Bronx, NY 10461', 'unit_no': '1H', 'bedrooms': 2, 'bathrooms': 1},
-            {'full_address': '741 Walnut Ave, Manhattan, NY 10003', 'unit_no': '7I', 'bedrooms': 3, 'bathrooms': 2},
+        cities_states = [
+            ('New York', 'NY', 10001, 40.7128, -74.0060),
+            ('Brooklyn', 'NY', 11201, 40.6782, -73.9442),
+            ('Queens', 'NY', 11372, 40.7282, -73.7949),
+            ('Jersey City', 'NJ', 7302, 40.7282, -74.0776),
+            ('Hoboken', 'NJ', 7030, 40.7453, -74.0278),
         ]
 
-        created_count = 0
-        for data in unit_data:
-            try:
-                # Create unique slug
-                slug = f"{data['full_address'].split(',')[0].lower().replace(' ', '-')}-{data['unit_no'].lower()}"
+        created_units = 0
+        created_listings = 0
 
-                Unit.objects.create(
-                    full_address=data['full_address'],
-                    unit_no=data['unit_no'],
-                    unit_slug=slug,
-                    no_bedrooms=data['bedrooms'],
-                    no_bathrooms=data['bathrooms'],
-                    description=f"Beautiful {data['bedrooms']} bedroom, {data['bathrooms']} bathroom apartment in a prime location.",
-                    is_furnished=random.choice([True, False]),
-                    is_semi_furnished=False,  # Can't be both furnished and semi-furnished
-                    agent_ID=agent
+        self.stdout.write("Generating 1000 units and listings...")
+
+        for k in range(1000):
+            # Deterministically identify the building index this unit belongs to
+            b_idx = k % 100
+            
+            # Recreate building random generator to get matching address details
+            rng_building = random.Random(b_idx)
+            city, state, pin, _, _ = rng_building.choice(cities_states)
+            building_address = f"{100 + b_idx} Grand Ave, {city}"
+            
+            # General RNG for unit specific fields
+            rng_unit = random.Random(k)
+            
+            unit_id = uuid.uuid5(uuid.NAMESPACE_DNS, f"unit-{k}")
+            floor = (k // 100) + 1
+            room = 100 + (k % 10)
+            unit_no = f"{floor}F-{room}"
+            slug = f"unit-{k}-{unit_no.lower()}"
+            
+            bedrooms = rng_unit.choice([1, 2, 3, 4])
+            bathrooms = rng_unit.choice([1, 2])
+            
+            # Setup furnished condition (is_furnished and is_semi_furnished cannot both be true)
+            is_furnished = rng_unit.choice([True, False])
+            is_semi_furnished = False if is_furnished else rng_unit.choice([True, False])
+
+            unit, unit_created = Unit.objects.get_or_create(
+                id=unit_id,
+                defaults={
+                    'full_address': f"{building_address}, {state} {pin + (b_idx % 10)}",
+                    'unit_no': unit_no,
+                    'unit_slug': slug,
+                    'no_bedrooms': bedrooms,
+                    'no_bathrooms': bathrooms,
+                    'description': f"Beautiful {bedrooms} bedroom, {bathrooms} bathroom unit in a premium building.",
+                    'is_furnished': is_furnished,
+                    'is_semi_furnished': is_semi_furnished,
+                    'agent_ID': rng_unit.choice(agents)
+                }
+            )
+
+            if unit_created:
+                created_units += 1
+                img_url = f"https://images.unsplash.com/photo-{rng_unit.choice(['1522708323590-d24dbb6b0267', '1502672260266-1c1ef2d93688', '1493809842364-78817add7ffb'])}?w=800"
+                Images.objects.create(
+                    image_url=img_url,
+                    unit_ID=unit
                 )
-                created_count += 1
-            except Exception as e:
-                self.stdout.write(self.style.ERROR(f'Error creating unit: {str(e)}'))
 
-        self.stdout.write(self.style.SUCCESS(f'Created {created_count} sample units'))
-
-    def create_sample_listing(self, units):
-        """Create a single sample listing with realistic data"""
-        try:
-            # Random rent between $800 and $5000
-            rent = random.randint(800, 5000)
-
-            # Deposit is typically 1-2 months rent
-            deposit_multiplier = random.choice([1, 1.5, 2])
-            deposit_amount = int(rent * deposit_multiplier)
-
-            # Lease term in months (6, 12, or 24 months typical)
-            lease_term = random.choice([6, 12, 24])
-
-            # Available date between now and 90 days from now
-            days_until_available = random.randint(0, 90)
-            available_date = timezone.now().date() + timedelta(days=days_until_available)
-
-            # Publish date between 30 days ago and now
-            days_since_published = random.randint(0, 30)
-            publish_date = timezone.now().date() - timedelta(days=days_since_published)
-
-            # Closing date 30-90 days after available date
-            days_until_closing = random.randint(30, 90)
-            closing_date = available_date + timedelta(days=days_until_closing)
-
-            # 70% of listings-service are verified
-            is_listing_verified = random.random() < 0.7
-
-            # Random unit
-            unit = random.choice(units)
-
-            listing = Listing.objects.create(
-                rent=rent,
-                deposit_amount=deposit_amount,
-                available_date=available_date,
-                publish_date=publish_date,
-                closing_date=closing_date,
-                lease_term=lease_term,
-                is_listing_verified=is_listing_verified,
-                unit_ID=unit
+            # Create Listing
+            listing_id = uuid.uuid5(uuid.NAMESPACE_DNS, f"listing-{k}")
+            rent = rng_unit.randint(1500, 6000)
+            deposit_amount = int(rent * rng_unit.choice([1, 1.5, 2]))
+            
+            listing, listing_created = Listing.objects.get_or_create(
+                id=listing_id,
+                defaults={
+                    'rent': rent,
+                    'deposit_amount': deposit_amount,
+                    'available_date': timezone.now().date() + timedelta(days=rng_unit.randint(5, 60)),
+                    'publish_date': timezone.now().date() - timedelta(days=rng_unit.randint(1, 15)),
+                    'closing_date': timezone.now().date() + timedelta(days=rng_unit.randint(60, 120)),
+                    'lease_term': rng_unit.choice([6, 12, 24]),
+                    'is_listing_verified': rng_unit.choice([True, True, False]), # 66% verified
+                    'unit_ID': unit
+                }
             )
 
-            return listing
+            if listing_created:
+                created_listings += 1
 
-        except Exception as e:
-            self.stdout.write(
-                self.style.ERROR(f'Error creating listing: {str(e)}')
-            )
-            return None
+            if (k + 1) % 200 == 0:
+                self.stdout.write(f"Processed {k+1}/1000 units and listings...")
+
+        self.stdout.write(self.style.SUCCESS(f"Successfully seeded {created_units} units and {created_listings} listings."))
