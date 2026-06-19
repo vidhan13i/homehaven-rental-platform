@@ -7,8 +7,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-profile-dev-key-change-in-prod')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,profile_service,gateway').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -73,40 +73,94 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
+    # Rate limiting — applied per-view via throttle_classes
+    'DEFAULT_THROTTLE_RATES': {
+        'otp_request': '5/hour',   # max 5 OTP requests per IP per hour
+        'otp_verify': '10/hour',   # max 10 verify attempts per IP per hour
+    },
 }
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:8000',
+]
 
-# ─── INTER-SERVICE URLs (for making HTTP calls to other microservices) ────────
+# ─── INTER-SERVICE URLs ────────────────────────────────────────────────────────
 BUILDING_SERVICE_URL = os.environ.get('BUILDING_SERVICE_URL', 'http://building_service:8000')
 LISTINGS_SERVICE_URL = os.environ.get('LISTINGS_SERVICE_URL', 'http://listings_service:8000')
-REVIEWS_SERVICE_URL = os.environ.get('REVIEWS_SERVICE_URL', 'http://reviews_service:8000')
+REVIEWS_SERVICE_URL  = os.environ.get('REVIEWS_SERVICE_URL',  'http://reviews_service:8000')
 
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_PORT = os.environ.get('DB_PORT', '5433')
+# ─── DATABASE ──────────────────────────────────────────────────────────────────
+DB_HOST     = os.environ.get('DB_HOST',     'localhost')
+DB_PORT     = os.environ.get('DB_PORT',     '5432')
 DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres",
+        "ENGINE":   "django.db.backends.postgresql",
+        "NAME":     "postgres",
+        "USER":     "postgres",
         "PASSWORD": DB_PASSWORD,
-        "HOST": DB_HOST,
-        "PORT": DB_PORT,
+        "HOST":     DB_HOST,
+        "PORT":     DB_PORT,
     },
     "profiles_app": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "profiles_app",
-        "USER": "postgres",
+        "ENGINE":   "django.db.backends.postgresql",
+        "NAME":     "profiles_app",
+        "USER":     "postgres",
         "PASSWORD": DB_PASSWORD,
-        "HOST": DB_HOST,
-        "PORT": DB_PORT,
+        "HOST":     DB_HOST,
+        "PORT":     DB_PORT,
     },
 }
 
 DATABASE_ROUTERS = ["config.db_router.ProfilesRouter"]
+
+# ─── REDIS ─────────────────────────────────────────────────────────────────────
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+            'IGNORE_EXCEPTIONS': False,
+        },
+    }
+}
+
+# ─── CELERY ────────────────────────────────────────────────────────────────────
+CELERY_BROKER_URL        = os.environ.get('CELERY_BROKER_URL', 'redis://redis:6379/1')
+CELERY_RESULT_BACKEND    = os.environ.get('CELERY_RESULT_BACKEND', 'redis://redis:6379/2')
+CELERY_ACCEPT_CONTENT    = ['json']
+CELERY_TASK_SERIALIZER   = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE          = 'Asia/Kolkata'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT   = 30   # hard kill task after 30s
+CELERY_TASK_SOFT_TIME_LIMIT = 20  # raise SoftTimeLimitExceeded after 20s
+
+# ─── EMAIL ─────────────────────────────────────────────────────────────────────
+# Use SMTP in prod; console backend in dev when EMAIL_BACKEND is not set
+EMAIL_BACKEND  = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'   # prints to stdout in dev
+)
+EMAIL_HOST         = os.environ.get('EMAIL_HOST',         'smtp.gmail.com')
+EMAIL_PORT         = int(os.environ.get('EMAIL_PORT',     '587'))
+EMAIL_USE_TLS      = os.environ.get('EMAIL_USE_TLS',      'True') == 'True'
+EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER',    '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Haven Rentals <noreply@haven.local>')
+
+# ─── OTP CONFIG ────────────────────────────────────────────────────────────────
+OTP_EXPIRY_SECONDS = int(os.environ.get('OTP_EXPIRY_SECONDS', '300'))  # 5 minutes
+OTP_REDIS_KEY_PREFIX = 'otp'
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

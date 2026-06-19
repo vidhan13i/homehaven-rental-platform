@@ -9,17 +9,19 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.conf import settings
+from django.core.cache import cache
 import requests
 
-from profiles_app.models import Profile, EmailOTP
+from profiles_app.models import Profile
 from profiles_app.api.serializers import (
     ProfileSerializer,
     ProfileListSerializer,
     ProfileCreateUpdateSerializer,
-    EmailOTPSerializer,
     EmailOTPRequestSerializer,
     EmailOTPVerifySerializer,
 )
+from profiles_app.tasks import send_otp_email
+from profiles_app.throttles import OTPRequestThrottle, OTPVerifyThrottle
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -116,67 +118,84 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Response(stats)
 
 
-class EmailOTPViewSet(viewsets.ModelViewSet):
+class EmailOTPViewSet(viewsets.GenericViewSet):
     """
-    ViewSet for OTP management.
+    ViewSet for OTP management using Redis and Celery.
 
     Custom actions:
-        POST /api/profiles/otp/request_otp/  → generate and store an OTP
-        POST /api/profiles/otp/verify_otp/   → verify an OTP and mark email as verified
+        POST /api/profiles/otp/request_otp/  → generate and store an OTP in Redis, dispatch email Celery task
+        POST /api/profiles/otp/verify_otp/   → verify an OTP from Redis and mark email as verified
     """
-
-    queryset = EmailOTP.objects.all()
-    serializer_class = EmailOTPSerializer
+    serializer_class = EmailOTPRequestSerializer
     permission_classes = [AllowAny]
 
-    @action(detail=False, methods=['post'])
+    def get_throttles(self):
+        if self.action == 'request_otp':
+            return [OTPRequestThrottle()]
+        elif self.action == 'verify_otp':
+            return [OTPVerifyThrottle()]
+        return super().get_throttles()
+
+    @action(detail=False, methods=['post'], serializer_class=EmailOTPRequestSerializer)
     def request_otp(self, request):
         """
-        Generate a 6-digit OTP, hash it, and store it.
-        In production, you'd send this OTP via email.
+        Generate a secure 6-digit OTP, hash it, store in Redis for 5 minutes,
+        and dispatch a Celery task to send it via email.
         """
-        serializer = EmailOTPRequestSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
+        email = serializer.validated_data['email'].strip().lower()
 
-        # Generate 6-digit OTP
+        # Generate secure 6-digit OTP
         otp = ''.join(random.choices(string.digits, k=6))
         otp_hash = hashlib.sha256(otp.encode()).hexdigest()
 
-        # Store with 10-minute expiry
-        EmailOTP.objects.create(
-            email=email,
-            otp_hash=otp_hash,
-            expiry_date=timezone.now() + timezone.timedelta(minutes=10),
-        )
+        # Store hash in Redis with a 5-minute (300 seconds) expiration
+        redis_key = f"{settings.OTP_REDIS_KEY_PREFIX}:{email}"
+        cache.set(redis_key, otp_hash, timeout=settings.OTP_EXPIRY_SECONDS)
 
-        # In production: send email here
-        # For dev, return the OTP directly
+        # Trigger Celery task to send OTP email asynchronously
+        send_otp_email.delay(email, otp)
+
         return Response({
-            'message': 'OTP generated successfully',
-            'otp': otp,  # Remove this in production!
-            'expires_in': '10 minutes',
-        }, status=status.HTTP_201_CREATED)
+            'message': 'OTP sent successfully. Please verify your email.'
+        }, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], serializer_class=EmailOTPVerifySerializer)
     def verify_otp(self, request):
-        """Verify an OTP and mark the associated profile's email as verified."""
-        serializer = EmailOTPVerifySerializer(data=request.data)
+        """Verify an OTP from Redis and mark the profile's email as verified."""
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
-        otp = serializer.validated_data['otp']
+        email = serializer.validated_data['email'].strip().lower()
+        otp = serializer.validated_data['otp'].strip()
         otp_hash = hashlib.sha256(otp.encode()).hexdigest()
 
-        try:
-            otp_record = EmailOTP.objects.filter(
-                email=email,
-                otp_hash=otp_hash,
-                expiry_date__gte=timezone.now(),
-            ).latest('created_at')
-        except EmailOTP.DoesNotExist:
+        redis_key = f"{settings.OTP_REDIS_KEY_PREFIX}:{email}"
+        attempts_key = f"otp_attempts:{email}"
+
+        # Check existing attempts
+        attempts = cache.get(attempts_key) or 0
+        if attempts >= 5:
+            # Delete OTP immediately once attempt limit is exceeded
+            cache.delete(redis_key)
+            cache.delete(attempts_key)
             return Response(
-                {'error': 'Invalid or expired OTP'},
+                {'message': 'Invalid or expired OTP'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        stored_hash = cache.get(redis_key)
+
+        if not stored_hash or stored_hash != otp_hash:
+            new_attempts = attempts + 1
+            cache.set(attempts_key, new_attempts, timeout=settings.OTP_EXPIRY_SECONDS)
+            if new_attempts >= 5:
+                # Delete OTP as maximum attempts reached
+                cache.delete(redis_key)
+                cache.delete(attempts_key)
+            return Response(
+                {'message': 'Invalid or expired OTP'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -188,7 +207,8 @@ class EmailOTPViewSet(viewsets.ModelViewSet):
         except Profile.DoesNotExist:
             pass  # OTP verified but no profile yet — that's okay
 
-        # Delete used OTP
-        otp_record.delete()
+        # Delete used OTP and attempts counter from Redis
+        cache.delete(redis_key)
+        cache.delete(attempts_key)
 
-        return Response({'message': 'Email verified successfully'})
+        return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)

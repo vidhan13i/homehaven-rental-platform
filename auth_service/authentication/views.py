@@ -46,21 +46,14 @@ class RegisterView(generics.CreateAPIView):
             )
 
         # Step 2: Request OTP automatically
-        otp_msg = ""
         try:
             otp_url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/otp/request_otp/"
-            otp_resp = requests.post(otp_url, json={"email": user.email}, headers={"Host": "localhost"}, timeout=5)
-            if otp_resp.status_code == 201:
-                otp_data = otp_resp.json()
-                otp_msg = f" OTP code: {otp_data.get('otp')} (Expires in 10 minutes)."
+            requests.post(otp_url, json={"email": user.email}, headers={"Host": "localhost"}, timeout=5)
         except requests.exceptions.RequestException:
-            # Do not rollback since user and profile are already created.
-            otp_msg = " Profile created successfully but OTP auto-request failed. Please request it manually."
+            pass
 
-        user_data = UserSerializer(user).data
         return Response({
-            "message": f"User registered successfully.{otp_msg}",
-            "user": user_data
+            "message": "OTP sent successfully. Please verify your email."
         }, status=status.HTTP_201_CREATED)
 
 

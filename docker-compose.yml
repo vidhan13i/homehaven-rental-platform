@@ -36,6 +36,17 @@ services:
       timeout: 5s
       retries: 5
 
+  # ─── REDIS ─────────────────────────────────────────────────────────────────
+  # Redis cache and Celery message broker.
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - rental_network
+    restart: unless-stopped
+
   # ─── NGINX GATEWAY ─────────────────────────────────────────────────────────
   # The "App over it" — single entry point for all requests.
   # Forwards /api/listings/ → listings_service, etc.
@@ -51,6 +62,7 @@ services:
       - building_service
       - reviews_service
       - auth_service
+      - redis
     networks:
       - rental_network
     restart: unless-stopped     # Restart automatically if it crashes
@@ -88,9 +100,40 @@ services:
       - SECRET_KEY=profile-super-secret-key-replace-this
       - JWT_SECRET_KEY=shared-jwt-secret-key-12345
       - DEBUG=True
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - rental_network
+    restart: unless-stopped
+
+  # ─── CELERY WORKER ─────────────────────────────────────────────────────────
+  # Background worker for sending emails and other async tasks.
+  celery_worker:
+    build: ./profile_service
+    container_name: celery_worker
+    command: celery -A celery_app worker --loglevel=info
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_PASSWORD=postgres123
+      - SECRET_KEY=profile-super-secret-key-replace-this
+      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
+      - DEBUG=True
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
