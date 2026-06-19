@@ -1,8 +1,20 @@
+import time
+import sys
 import logging
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
-logger = logging.getLogger(__name__)
+# Configure a dedicated console logger for resilience events
+logger = logging.getLogger("shared_lib.resilience")
+logger.setLevel(logging.INFO)
+logger.propagate = False
+
+if not logger.handlers:
+    sh = logging.StreamHandler(sys.stdout)
+    sh.setLevel(logging.INFO)
+    formatter = logging.Formatter('[%(levelname)s] resilience - %(message)s')
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
 
 def is_temporary_failure(exception):
     """
@@ -48,10 +60,43 @@ def make_resilient_request(url, method='GET', service_name='Unknown', max_attemp
     def _execute():
         # Force the configured timeout
         kwargs['timeout'] = timeout
-        resp = requests.request(method, url, **kwargs)
-        # Raise HTTPError for retryable status codes so tenacity can retry
-        if resp.status_code in [429, 500, 502, 503, 504]:
-            resp.raise_for_status()
-        return resp
+        start_time = time.time()
+        try:
+            resp = requests.request(method, url, **kwargs)
+            duration = time.time() - start_time
+            # Raise HTTPError for retryable status codes so tenacity can retry
+            if resp.status_code in [429, 500, 502, 503, 504]:
+                logger.warning(
+                    "Request to %s returned retryable status %d. Duration: %.2fs",
+                    service_name, resp.status_code, duration
+                )
+                resp.raise_for_status()
+            
+            logger.info(
+                "Request to %s succeeded. Status: %d, Duration: %.2fs",
+                service_name, resp.status_code, duration
+            )
+            return resp
+        except requests.exceptions.Timeout as e:
+            duration = time.time() - start_time
+            logger.error(
+                "Timeout connecting to %s. Duration: %.2fs. Error: %s",
+                service_name, duration, str(e)
+            )
+            raise
+        except requests.exceptions.ConnectionError as e:
+            duration = time.time() - start_time
+            logger.error(
+                "Connection failure to %s. Duration: %.2fs. Error: %s",
+                service_name, duration, str(e)
+            )
+            raise
+        except requests.exceptions.RequestException as e:
+            duration = time.time() - start_time
+            logger.error(
+                "RequestException for %s. Duration: %.2fs. Error: %s",
+                service_name, duration, str(e)
+            )
+            raise
 
     return _execute()
