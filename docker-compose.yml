@@ -21,7 +21,7 @@ services:
     container_name: db
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: postgres     # Default DB (each service has its own too)
     volumes:
       - postgres_data:/var/lib/postgresql/data  # Data persists across restarts
@@ -72,14 +72,10 @@ services:
   listings_service:
     build: ./listings_service   # Docker builds this image from listings_service/Dockerfile
     container_name: listings_service
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-      - DB_HOST=db              # 'db' is the container name of PostgreSQL above
-      - DB_PORT=5432            # Internal Docker port (not the 5432 exposed to Mac)
-      - DB_PASSWORD=postgres123
-      - SECRET_KEY=listings-super-secret-key-replace-this
-      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
-      - DEBUG=True
     depends_on:
       db:
         condition: service_healthy  # Wait for postgres to be healthy first
@@ -92,17 +88,10 @@ services:
   profile_service:
     build: ./profile_service
     container_name: profile_service
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_PASSWORD=postgres123
-      - SECRET_KEY=profile-super-secret-key-replace-this
-      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
-      - DEBUG=True
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
     depends_on:
       db:
         condition: service_healthy
@@ -118,17 +107,10 @@ services:
     build: ./profile_service
     container_name: celery_worker
     command: celery -A celery_app worker --loglevel=info
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_PASSWORD=postgres123
-      - SECRET_KEY=profile-super-secret-key-replace-this
-      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
-      - DEBUG=True
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
     depends_on:
       db:
         condition: service_healthy
@@ -143,14 +125,10 @@ services:
   application_service:
     build: ./application_service
     container_name: application_service
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_PASSWORD=postgres123
-      - SECRET_KEY=application-super-secret-key-replace-this
-      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
-      - DEBUG=True
     depends_on:
       db:
         condition: service_healthy
@@ -163,14 +141,10 @@ services:
   building_service:
     build: ./building_service
     container_name: building_service
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_PASSWORD=postgres123
-      - SECRET_KEY=building-super-secret-key-replace-this
-      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
-      - DEBUG=True
     depends_on:
       db:
         condition: service_healthy
@@ -183,14 +157,10 @@ services:
   reviews_service:
     build: ./reviews_service
     container_name: reviews_service
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_PASSWORD=postgres123
-      - SECRET_KEY=reviews-super-secret-key-replace-this
-      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
-      - DEBUG=True
     depends_on:
       db:
         condition: service_healthy
@@ -203,14 +173,10 @@ services:
   auth_service:
     build: ./auth_service
     container_name: auth_service
+    env_file:
+      - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_PASSWORD=postgres123
-      - SECRET_KEY=auth-super-secret-key-replace-this
-      - JWT_SECRET_KEY=shared-jwt-secret-key-12345
-      - DEBUG=True
     depends_on:
       db:
         condition: service_healthy

@@ -3,10 +3,18 @@ Django settings for building_service.
 """
 from pathlib import Path
 import os
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-building-dev-key-change-in-prod')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured("SECRET_KEY environment variable is required")
+
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+if not JWT_SECRET_KEY:
+    raise ImproperlyConfigured("JWT_SECRET_KEY environment variable is required")
+
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
@@ -53,7 +61,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'shared-jwt-secret-key-12345')
+# JWT_SECRET_KEY is validated above
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -78,7 +86,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', '5433')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+if not DB_PASSWORD:
+    raise ImproperlyConfigured("DB_PASSWORD environment variable is required")
 
 DATABASES = {
     "default": {

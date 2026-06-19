@@ -3,10 +3,18 @@ Django settings for profile_service.
 """
 from pathlib import Path
 import os
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-profile-dev-key-change-in-prod')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured("SECRET_KEY environment variable is required")
+
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+if not JWT_SECRET_KEY:
+    raise ImproperlyConfigured("JWT_SECRET_KEY environment variable is required")
+
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,profile_service,gateway').split(',')
 
@@ -53,7 +61,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'shared-jwt-secret-key-12345')
+# JWT_SECRET_KEY is validated above
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -95,7 +103,9 @@ REVIEWS_SERVICE_URL  = os.environ.get('REVIEWS_SERVICE_URL',  'http://reviews_se
 # ─── DATABASE ──────────────────────────────────────────────────────────────────
 DB_HOST     = os.environ.get('DB_HOST',     'localhost')
 DB_PORT     = os.environ.get('DB_PORT',     '5432')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+if not DB_PASSWORD:
+    raise ImproperlyConfigured("DB_PASSWORD environment variable is required")
 
 DATABASES = {
     "default": {
@@ -155,7 +165,7 @@ EMAIL_HOST         = os.environ.get('EMAIL_HOST',         'smtp.gmail.com')
 EMAIL_PORT         = int(os.environ.get('EMAIL_PORT',     '587'))
 EMAIL_USE_TLS      = os.environ.get('EMAIL_USE_TLS',      'True') == 'True'
 EMAIL_HOST_USER    = os.environ.get('EMAIL_HOST_USER',    '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Haven Rentals <noreply@haven.local>')
 
 # ─── OTP CONFIG ────────────────────────────────────────────────────────────────

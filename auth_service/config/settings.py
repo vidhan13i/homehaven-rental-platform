@@ -1,10 +1,18 @@
 from pathlib import Path
 import os
 from datetime import timedelta
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-auth-dev-key-change-in-prod')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured("SECRET_KEY environment variable is required")
+
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
+if not JWT_SECRET_KEY:
+    raise ImproperlyConfigured("JWT_SECRET_KEY environment variable is required")
+
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
@@ -53,7 +61,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ─── DATABASE CONFIGURATION ──────────────────────────────────────────────────
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', '5433')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'postgres123')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+if not DB_PASSWORD:
+    raise ImproperlyConfigured("DB_PASSWORD environment variable is required")
 
 DATABASES = {
     "default": {
@@ -95,7 +105,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': os.environ.get('JWT_SECRET_KEY', 'shared-jwt-secret-key-12345'),
+    'SIGNING_KEY': JWT_SECRET_KEY,
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
