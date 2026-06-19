@@ -30,6 +30,10 @@ staticfiles/
 !.env.example
 !*.env.example
 !**/.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # ─── Docker ───────────────────────────────────────────────────────
 # Ignore local docker overrides
