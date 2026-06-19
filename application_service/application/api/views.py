@@ -35,6 +35,9 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     queryset = Application.objects.select_related('applicant_ID').all()
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicationSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(applicant_ID__profile_ID=self.request.user.id)
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['application_status', 'building_ID', 'unit_ID']
     ordering_fields = ['submitted_at_date', 'created_at', 'application_status']
@@ -162,6 +165,12 @@ class ApplicantViewSet(viewsets.ModelViewSet):
     queryset = Applicant.objects.prefetch_related('document', 'application').all()
     permission_classes = [IsAuthenticated]
     serializer_class = ApplicantSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(profile_ID=self.request.user.id)
+
+    def perform_create(self, serializer):
+        serializer.save(profile_ID=self.request.user.id)
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['has_rented_before', 'marital_status']
     search_fields = ['employer', 'job_title']
@@ -214,5 +223,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
     queryset = Document.objects.select_related('applicant_ID').all()
     serializer_class = DocumentSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(applicant_ID__profile_ID=self.request.user.id)
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['applicant_ID']
