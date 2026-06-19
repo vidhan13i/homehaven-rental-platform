@@ -1,6 +1,6 @@
-import hashlib
 import random
 import string
+from django.contrib.auth.hashers import make_password, check_password
 
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
@@ -148,7 +148,7 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
 
         # Generate secure 6-digit OTP
         otp = ''.join(random.choices(string.digits, k=6))
-        otp_hash = hashlib.sha256(otp.encode()).hexdigest()
+        otp_hash = make_password(otp)
 
         # Store hash in Redis with a 5-minute (300 seconds) expiration
         redis_key = f"{settings.OTP_REDIS_KEY_PREFIX}:{email}"
@@ -169,7 +169,6 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
 
         email = serializer.validated_data['email'].strip().lower()
         otp = serializer.validated_data['otp'].strip()
-        otp_hash = hashlib.sha256(otp.encode()).hexdigest()
 
         redis_key = f"{settings.OTP_REDIS_KEY_PREFIX}:{email}"
         attempts_key = f"otp_attempts:{email}"
@@ -187,7 +186,7 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
 
         stored_hash = cache.get(redis_key)
 
-        if not stored_hash or stored_hash != otp_hash:
+        if not stored_hash or not check_password(otp, stored_hash):
             new_attempts = attempts + 1
             cache.set(attempts_key, new_attempts, timeout=settings.OTP_EXPIRY_SECONDS)
             if new_attempts >= 5:
