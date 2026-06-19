@@ -6,4 +6,6 @@ psycopg2-binary==2.9.11
 gunicorn==21.2.0
 requests==2.32.3
 PyJWT==2.8.0
+tenacity==8.3.0
+
 

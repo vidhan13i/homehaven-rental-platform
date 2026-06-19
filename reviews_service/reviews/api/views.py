@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Count, Q
 from django.conf import settings
 import requests
+from shared_lib.resilience import make_resilient_request
 
 from reviews.models.reviews import Review
 from reviews.api.serializers import (
@@ -82,11 +83,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review = self.get_object()
         try:
             url = f"{settings.BUILDING_SERVICE_URL}/api/buildings/buildings/{review.building_ID}/"
-            resp = requests.get(url, timeout=5)
+            resp = make_resilient_request(
+                url,
+                method='GET',
+                service_name='building_service',
+                max_attempts=3,
+                timeout=2,
+            )
             return Response(resp.json(), status=resp.status_code)
         except requests.exceptions.RequestException:
             return Response(
-                {'error': 'Building service is unavailable'},
+                {"message": "Building service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
@@ -99,11 +106,17 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review = self.get_object()
         try:
             url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/profiles/{review.profile_ID}/"
-            resp = requests.get(url, timeout=5)
+            resp = make_resilient_request(
+                url,
+                method='GET',
+                service_name='profile_service',
+                max_attempts=3,
+                timeout=2,
+            )
             return Response(resp.json(), status=resp.status_code)
         except requests.exceptions.RequestException:
             return Response(
-                {'error': 'Profile service is unavailable'},
+                {"message": "Profile service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 

@@ -76,6 +76,8 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
     depends_on:
       db:
         condition: service_healthy  # Wait for postgres to be healthy first
@@ -92,6 +94,8 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
     depends_on:
       db:
         condition: service_healthy
@@ -111,6 +115,8 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
     depends_on:
       db:
         condition: service_healthy
@@ -129,6 +135,8 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
     depends_on:
       db:
         condition: service_healthy
@@ -145,6 +153,8 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
     depends_on:
       db:
         condition: service_healthy
@@ -161,6 +171,8 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
     depends_on:
       db:
         condition: service_healthy
@@ -177,6 +189,8 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
     depends_on:
       db:
         condition: service_healthy

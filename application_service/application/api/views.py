@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.conf import settings
 from django.db.models import Count
 import requests
+from shared_lib.resilience import make_resilient_request
 
 from application.models import Application, Applicant, Document
 from application.api.serializers import (
@@ -108,11 +109,17 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         application = self.get_object()
         try:
             url = f"{settings.LISTINGS_SERVICE_URL}/api/listings/units/{application.unit_ID}/"
-            resp = requests.get(url, timeout=5)
+            resp = make_resilient_request(
+                url,
+                method='GET',
+                service_name='listings_service',
+                max_attempts=3,
+                timeout=2,
+            )
             return Response(resp.json(), status=resp.status_code)
         except requests.exceptions.RequestException:
             return Response(
-                {'error': 'Listings service is unavailable'},
+                {"message": "Listings service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
@@ -125,11 +132,17 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         application = self.get_object()
         try:
             url = f"{settings.BUILDING_SERVICE_URL}/api/buildings/buildings/{application.building_ID}/"
-            resp = requests.get(url, timeout=5)
+            resp = make_resilient_request(
+                url,
+                method='GET',
+                service_name='building_service',
+                max_attempts=3,
+                timeout=2,
+            )
             return Response(resp.json(), status=resp.status_code)
         except requests.exceptions.RequestException:
             return Response(
-                {'error': 'Building service is unavailable'},
+                {"message": "Building service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
@@ -209,11 +222,17 @@ class ApplicantViewSet(viewsets.ModelViewSet):
         applicant = self.get_object()
         try:
             url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/profiles/{applicant.profile_ID}/"
-            resp = requests.get(url, timeout=5)
+            resp = make_resilient_request(
+                url,
+                method='GET',
+                service_name='profile_service',
+                max_attempts=3,
+                timeout=2,
+            )
             return Response(resp.json(), status=resp.status_code)
         except requests.exceptions.RequestException:
             return Response(
-                {'error': 'Profile service is unavailable'},
+                {"message": "Profile service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 

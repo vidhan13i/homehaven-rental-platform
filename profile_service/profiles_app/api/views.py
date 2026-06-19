@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.cache import cache
 import requests
+from shared_lib.resilience import make_resilient_request
 
 from profiles_app.models import Profile
 from profiles_app.api.serializers import (
@@ -76,11 +77,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile = self.get_object()
         try:
             url = f"{settings.REVIEWS_SERVICE_URL}/api/reviews/reviews/?profile_id={profile.id}"
-            resp = requests.get(url, timeout=5)
+            resp = make_resilient_request(
+                url,
+                method='GET',
+                service_name='reviews_service',
+                max_attempts=3,
+                timeout=2,
+            )
             return Response(resp.json(), status=resp.status_code)
         except requests.exceptions.RequestException:
             return Response(
-                {'error': 'Reviews service is unavailable'},
+                {"message": "Reviews service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
@@ -93,11 +100,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
         profile = self.get_object()
         try:
             url = f"{settings.LISTINGS_SERVICE_URL}/api/applications/applications/?profile_id={profile.id}"
-            resp = requests.get(url, timeout=5)
+            resp = make_resilient_request(
+                url,
+                method='GET',
+                service_name='application_service',
+                max_attempts=3,
+                timeout=2,
+            )
             return Response(resp.json(), status=resp.status_code)
         except requests.exceptions.RequestException:
             return Response(
-                {'error': 'Application service is unavailable'},
+                {"message": "Application service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
