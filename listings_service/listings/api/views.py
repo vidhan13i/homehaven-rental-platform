@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Avg, Count
+from django.db import transaction
 
 from listings.models import Listing, Unit, Agent, Images, AgentImages
 from listings.api.serializers import (
@@ -149,6 +150,68 @@ class ListingViewSet(viewsets.ModelViewSet):
         listing.save()
         serializer = self.get_serializer(listing)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='create-full')
+    @transaction.atomic
+    def create_full(self, request):
+        """
+        Creates a Unit, attaches Images, and creates a Listing in one atomic transaction.
+        Expects a multipart/form-data payload.
+        """
+        try:
+            # 1. Extract Unit fields and validate
+            unit_data = {
+                'full_address': request.data.get('full_address'),
+                'unit_no': request.data.get('unit_no'),
+                'unit_slug': request.data.get('unit_slug'),
+                'no_bedrooms': request.data.get('no_bedrooms'),
+                'no_bathrooms': request.data.get('no_bathrooms'),
+                'description': request.data.get('description'),
+                'is_furnished': str(request.data.get('is_furnished')).lower() == 'true',
+                'is_semi_furnished': str(request.data.get('is_semi_furnished')).lower() == 'true',
+                'agent_ID': request.data.get('agent_ID'),
+            }
+            
+            unit_serializer = UnitCreateUpdateSerializer(data=unit_data)
+            unit_serializer.is_valid(raise_exception=True)
+            unit = unit_serializer.save()
+
+            # 2. Extract and attach Images
+            # getlist allows retrieving multiple files with the same key
+            images = request.FILES.getlist('images')
+            for img in images:
+                img_serializer = UnitImageSerializer(data={'image_url': img, 'unit_ID': unit.id})
+                img_serializer.is_valid(raise_exception=True)
+                img_serializer.save(unit_ID=unit)
+
+            # 3. Extract Listing fields and validate
+            listing_data = {
+                'rent': request.data.get('rent'),
+                'deposit_amount': request.data.get('deposit_amount'),
+                'available_date': request.data.get('available_date'),
+                'publish_date': request.data.get('publish_date'),
+                'closing_date': request.data.get('closing_date'),
+                'is_listing_verified': str(request.data.get('is_listing_verified')).lower() == 'true',
+                'unit_ID': unit.id,
+            }
+            
+            listing_serializer = ListingCreateUpdateSerializer(data=listing_data)
+            listing_serializer.is_valid(raise_exception=True)
+            listing = listing_serializer.save()
+
+            return Response(
+                {"message": "Listing successfully created.", "id": listing.id},
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            # transaction.atomic will automatically rollback all DB changes
+            # We want to return a helpful error message to the frontend
+            import traceback
+            traceback.print_exc()
+            return Response(
+                {"detail": str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class PublicListingListView(generics.ListAPIView):

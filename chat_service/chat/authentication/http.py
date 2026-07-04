@@ -33,7 +33,6 @@ class SimpleJWTUser:
 
     def __init__(self, user_id: str, email: str = None, username: str = None):
         self.id = user_id
-        self.pk = user_id  # DRF compatibility
         self.email = email
         self.username = username
         self.is_authenticated = True
@@ -47,6 +46,10 @@ class SimpleJWTUser:
 
     def __repr__(self) -> str:
         return f"SimpleJWTUser(id={self.id!r}, username={self.username!r})"
+
+    @property
+    def pk(self):
+        return self.id
 
 
 class TrustedJWTAuthentication(authentication.BaseAuthentication):

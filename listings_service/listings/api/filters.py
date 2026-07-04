@@ -35,6 +35,10 @@ class ListingFilter(django_filters.FilterSet):
     # Filter by furnishing (cross FK: listing → unit)
     is_furnished = django_filters.BooleanFilter(field_name='unit_ID__is_furnished')
 
+    # Filter by bedrooms and bathrooms
+    bedrooms = django_filters.NumberFilter(field_name='unit_ID__no_bedrooms', lookup_expr='gte')
+    bathrooms = django_filters.NumberFilter(field_name='unit_ID__no_bathrooms', lookup_expr='gte')
+
     search = django_filters.CharFilter(method='filter_search')
 
     class Meta:

@@ -190,7 +190,7 @@ class ListingSerializer(serializers.ModelSerializer):
 
 class ListingListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for listing page / search results."""
-    unit_address = serializers.CharField(source='unit_ID.full_address', read_only=True)
+    unit_details = UnitSerializer(source='unit_ID', read_only=True)
 
     class Meta:
         model = Listing
@@ -201,7 +201,7 @@ class ListingListSerializer(serializers.ModelSerializer):
             'available_date',
             'is_listing_verified',
             'unit_ID',
-            'unit_address',
+            'unit_details',
         ]
 
 

@@ -14,6 +14,10 @@ class SimpleJWTUser:
 
     def __str__(self):
         return f"{self.username or self.id}"
+        
+    @property
+    def pk(self):
+        return self.id
 
 class TrustedJWTAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
