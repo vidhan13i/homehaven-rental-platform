@@ -10,6 +10,7 @@
 [![Tenacity Resilience](https://img.shields.io/badge/Tenacity-Resilient-orange?style=flat-square)](https://tenacity.readthedocs.io/)
 [![OpenAPI 3.0](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?style=flat-square&logo=openapi-initiative&logoColor=black)](https://www.openapis.org/)
 [![Swagger UI](https://img.shields.io/badge/Swagger-UI-85EA2D?style=flat-square&logo=swagger&logoColor=black)](https://swagger.io/)
+[![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=flat-square&logo=apache-kafka&logoColor=white)](https://kafka.apache.org/)
 
 HomeHaven is a premium crowdsourced tenant reviews, building ratings, and rental applications microservices platform. The system is built with a decoupled React frontend and a multi-container Django REST Framework backend routed through an Nginx API Gateway.
 
