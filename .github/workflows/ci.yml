@@ -89,6 +89,7 @@ jobs:
         id: run_tests
         working-directory: ./${{ matrix.service }}
         env:
+          PYTHONPATH: ${{ github.workspace }}
           DJANGO_SETTINGS_MODULE: config.settings
           SECRET_KEY: dummy-test-secret-key
           JWT_SECRET_KEY: dummy-jwt-secret-key

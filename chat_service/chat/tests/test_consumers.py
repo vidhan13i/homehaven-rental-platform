@@ -12,7 +12,7 @@ import uuid
 import time
 import jwt
 
-from django.test import TestCase, override_settings
+from django.test import TransactionTestCase, override_settings
 from channels.testing import WebsocketCommunicator
 
 from chat.models import Conversation
@@ -56,7 +56,7 @@ def _create_conversation(owner_id: str, renter_id: str) -> Conversation:
         }
     },
 )
-class ChatConsumerTest(TestCase):
+class ChatConsumerTest(TransactionTestCase):
     """WebSocket consumer integration tests using in-memory channel layer."""
 
     databases = {"default", "chat"}
