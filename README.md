@@ -8,6 +8,8 @@
 [![Celery Task Queue](https://img.shields.io/badge/Celery-5.4.0-37814A?style=flat-square&logo=celery&logoColor=white)](https://docs.celeryq.dev/)
 [![Nginx Gateway](https://img.shields.io/badge/Nginx-Gateway-009639?style=flat-square&logo=nginx&logoColor=white)](https://nginx.org/)
 [![Tenacity Resilience](https://img.shields.io/badge/Tenacity-Resilient-orange?style=flat-square)](https://tenacity.readthedocs.io/)
+[![OpenAPI 3.0](https://img.shields.io/badge/OpenAPI-3.0-85EA2D?style=flat-square&logo=openapi-initiative&logoColor=black)](https://www.openapis.org/)
+[![Swagger UI](https://img.shields.io/badge/Swagger-UI-85EA2D?style=flat-square&logo=swagger&logoColor=black)](https://swagger.io/)
 
 HomeHaven is a premium crowdsourced tenant reviews, building ratings, and rental applications microservices platform. The system is built with a decoupled React frontend and a multi-container Django REST Framework backend routed through an Nginx API Gateway.
 
@@ -36,32 +38,32 @@ The platform runs on a unified Docker bridge network (`rental_network`) where se
 
 ```mermaid
 graph TD
-    User([User Browser]) -->|Port 8000| Gateway[Nginx Gateway]
-    User -->|Port 5174| React[React Frontend]
+    Client([User Browser]) -->|HTTP :8000| Gateway[Nginx API Gateway]
 
-    subgraph Backend Microservices
-        Gateway -->|/api/auth/| Auth[Auth Service]
-        Gateway -->|/api/profiles/| Profile[Profile Service]
-        Gateway -->|/api/applications/| AppService[Application Service]
-        Gateway -->|/api/listings/| Listings[Listings Service]
-        Gateway -->|/api/buildings/| Building[Building Service]
-        Gateway -->|/api/reviews/| Reviews[Reviews Service]
-        Gateway -->|/api/chat/ & /ws/chat/| Chat[Chat Service]
-        Gateway -->|/api/notifications/ & /ws/notifications/| Notifications[Notification Service]
+    subgraph Services [Backend Microservices]
+        Gateway --> Auth
+        Gateway --> Profile
+        Gateway --> Listings
+        Gateway --> Building
+        Gateway --> Applications
+        Gateway --> Reviews
+        Gateway --> Chat
+        Gateway --> Notifications
     end
 
-    subgraph Event Bus & Infrastructure
-        Auth & AppService & Chat & Reviews & Listings -->|Produce Events| Kafka[Apache Kafka]
-        Kafka -->|Consume Events| Notifications
-        Kafka -->|Consume Events| Chat
-        Kafka --- ZK[Zookeeper]
+    subgraph Event-Driven Bus [Apache Kafka]
+        Auth -.->|Produce| Events[Topics]
+        Applications -.->|Produce| Events
+        Reviews -.->|Produce| Events
+        Listings -.->|Produce| Events
+        
+        Events -.->|Consume| Chat
+        Events -.->|Consume| Notifications
     end
 
-    subgraph Data & Queue
-        Auth & Profile & AppService & Listings & Building & Reviews & Chat & Notifications -->|DB Connections| PG[(PostgreSQL Database)]
-        Profile & Chat & Notifications -->|Cache & WS Backend| Redis[(Redis Broker & Cache)]
-        Celery[Celery Worker] -->|Listen Tasks| Redis
-        Celery -->|DB Connection| PG
+    subgraph Data & Queue [Databases]
+        Services === PG[(PostgreSQL)]
+        Chat & Notifications & Profile === Redis[(Redis Broker)]
     end
 ```
 
