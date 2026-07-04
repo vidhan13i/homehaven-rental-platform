@@ -72,3 +72,48 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ─── Chat API Helpers ────────────────────────────────────────────────────────
+
+export const chatApi = {
+  // Conversations
+  getConversations: (page = 1) => api.get(`/api/chat/conversations/?page=${page}`),
+  createConversation: (data) => api.post(`/api/chat/conversations/`, data),
+  getConversation: (id) => api.get(`/api/chat/conversations/${id}/`),
+  deleteConversation: (id) => api.delete(`/api/chat/conversations/${id}/`),
+  archiveConversation: (id) => api.post(`/api/chat/conversations/${id}/archive/`),
+  pinConversation: (id) => api.post(`/api/chat/conversations/${id}/pin/`),
+  markRead: (id) => api.post(`/api/chat/conversations/${id}/mark_read/`),
+  getUnreadCount: (id) => api.get(`/api/chat/conversations/${id}/unread_count/`),
+  
+  // Messages
+  getMessages: (conversationId, page = 1) => api.get(`/api/chat/messages/?conversation=${conversationId}&page=${page}`),
+  sendMessage: (data) => api.post(`/api/chat/messages/`, data),
+  editMessage: (id, content) => api.patch(`/api/chat/messages/${id}/`, { content }),
+  deleteMessage: (id) => api.delete(`/api/chat/messages/${id}/`),
+  reactToMessage: (id, emoji) => api.post(`/api/chat/messages/${id}/react/`, { emoji }),
+  
+  // Presence
+  getPresence: (userId) => api.get(`/api/chat/presence/${userId}/`),
+};
+
+// ─── Agent & Application API Helpers ─────────────────────────────────────────
+
+export const profileApi = {
+  getProfile: () => api.get('/api/profiles/profiles/'),
+  getProfileByEmail: (email) => api.get(`/api/profiles/profiles/by-email/?email=${email}`),
+  updateProfile: (data) => api.patch('/api/profiles/profiles/', data),
+};
+
+export const agentApi = {
+  checkAgentStatus: (email) => api.get(`/api/listings/agents/?search=${email}`),
+  getAgent: (id) => api.get(`/api/listings/agents/${id}/`),
+  getAgentListings: (agentId) => api.get(`/api/listings/listings/?agent=${agentId}`),
+  createFullListing: (fd) => api.post(`/api/listings/listings/create-full/`, fd, { headers: { 'Content-Type': undefined } }),
+};
+
+export const applicationApi = {
+  getApplicationsByUnit: (unitId) => api.get(`/api/applications/applications/by-unit/?unit_id=${unitId}`),
+  approveApplication: (id) => api.post(`/api/applications/applications/${id}/approve/`),
+  rejectApplication: (id) => api.post(`/api/applications/applications/${id}/reject/`),
+};

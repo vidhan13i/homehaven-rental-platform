@@ -5,8 +5,13 @@ import {
   ChevronLeft, ChevronRight, SlidersHorizontal, Star,
   CheckCircle2, ArrowRight, BadgeCheck, Mail, FileUp,
   Building2, Bed, Bath, Ruler, Calendar, TrendingUp,
-  Clock, Send, User, Lock, Plus, Trash2, RefreshCw
+  Clock, Send, User, Lock, Plus, Trash2, RefreshCw, Briefcase
 } from 'lucide-react';
+import { ChatProvider } from './components/chat/ChatContext';
+import { ChatView } from './components/chat/ChatView';
+import { MessagesNavBtn, ContactOwnerBtn } from './components/chat/AppChatIntegrations';
+import { agentApi } from './api';
+import { AgentDashboard } from './components/agent/AgentDashboard';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -131,6 +136,8 @@ export default function App() {
   const [rentMax, setRentMax]     = useState('');
   const [bedrooms, setBedrooms]   = useState('');
   const [bathrooms, setBathrooms] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy]       = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
   // Wizard
@@ -164,13 +171,28 @@ export default function App() {
 
   // Init auth
   useEffect(() => {
-    const token = getAccessToken();
-    if (token) {
-      const decoded = decodeJWT(token);
-      if (decoded && decoded.exp * 1000 > Date.now()) {
-        setUser({ id: decoded.user_id, username: decoded.username, email: decoded.email });
-      } else { clearTokens(); }
-    }
+    const initAuth = async () => {
+      const token = getAccessToken();
+      if (token) {
+        const decoded = decodeJWT(token);
+        if (decoded && decoded.exp * 1000 > Date.now()) {
+          try {
+            const agentResp = await agentApi.checkAgentStatus(decoded.email);
+            const agent = agentResp.data.results?.find(a => a.email === decoded.email);
+            setUser({ 
+              id: decoded.user_id, 
+              username: decoded.username, 
+              email: decoded.email,
+              isAgent: !!agent,
+              agentId: agent?.id
+            });
+          } catch (e) {
+            setUser({ id: decoded.user_id, username: decoded.username, email: decoded.email });
+          }
+        } else { clearTokens(); }
+      }
+    };
+    initAuth();
   }, []);
 
   useEffect(() => { if (currentView === 'listings') fetchListings(); }, [currentView, currentPage]);
@@ -182,10 +204,12 @@ export default function App() {
     setLoadingListings(true);
     try {
       let url = `/api/listings/listings/public/?page=${currentPage}`;
-      if (rentMin) url += `&rent_min=${rentMin}`;
-      if (rentMax) url += `&rent_max=${rentMax}`;
+      if (rentMin) url += `&min_rent=${rentMin}`;
+      if (rentMax) url += `&max_rent=${rentMax}`;
       if (bedrooms) url += `&bedrooms=${bedrooms}`;
       if (bathrooms) url += `&bathrooms=${bathrooms}`;
+      if (searchQuery) url += `&search=${searchQuery}`;
+      if (sortBy) url += `&ordering=${sortBy}`;
       const resp = await api.get(url);
       setListings(resp.data.results || []);
       setListingsCount(resp.data.count || 0);
@@ -246,9 +270,23 @@ export default function App() {
       const { access, refresh } = resp.data;
       setTokens(access, refresh);
       const decoded = decodeJWT(access);
-      const loggedInUser = { id: decoded.user_id, username: decoded.username, email: decoded.email };
+      
+      let isAgent = false;
+      let agentId = null;
+      try {
+        const agentResp = await agentApi.checkAgentStatus(decoded.email);
+        const agent = agentResp.data.results?.find(a => a.email === decoded.email);
+        if (agent) {
+          isAgent = true;
+          agentId = agent.id;
+        }
+      } catch (e) {
+        console.error('Failed to check agent status');
+      }
+
+      const loggedInUser = { id: decoded.user_id, username: decoded.username, email: decoded.email, isAgent, agentId };
       setUser(loggedInUser);
-      setCurrentView('listings');
+      setCurrentView(isAgent ? 'agent_dashboard' : 'listings');
       addToast(`Welcome back, ${decoded.username}!`);
     } catch (err) {
       setAuthError(
@@ -281,6 +319,7 @@ export default function App() {
     e.preventDefault(); setWizardError(''); setSubmitting(true);
     try {
       const payload = {
+        profile_ID: user?.id,
         employer, job_title: jobTitle, credit_score: parseInt(creditScore),
         income: parseFloat(income), savings: parseFloat(savings),
         expected_movein_date: moveInDate, reason, has_rented_before: hasRentedBefore,
@@ -310,7 +349,9 @@ export default function App() {
     try {
       const fd = new FormData();
       fd.append('label', docLabel); fd.append('applicant_ID', applicantId); fd.append('file_field', selectedFile);
-      const resp = await api.post('/api/applications/documents/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const resp = await api.post('/api/applications/documents/', fd, {
+        headers: { 'Content-Type': undefined }
+      });
       setUploadedDocs(prev => [...prev, resp.data]);
       setSelectedFile(null);
       const fi = document.getElementById('file-input');
@@ -324,15 +365,25 @@ export default function App() {
   const handleFinalSubmitApplication = async () => {
     setWizardError(''); setSubmitting(true);
     try {
+      const residentInfoObj = {
+        name: residentInfo || user?.username || 'Applicant',
+        gender: 'other',
+        dob: '2000-01-01'
+      };
+
       const resp = await api.post('/api/applications/applications/', {
-        unit_ID: selectedListing.unit_ID, building_ID: selectedListing.building_ID,
-        applicant_ID: applicantId, lease_term: parseInt(leaseTerm), resident_info: residentInfo,
+        unit_ID: selectedListing.unit_ID || selectedListing.unit_details?.id,
+        building_ID: selectedListing.building_ID || '00000000-0000-0000-0000-000000000000',
+        applicant_ID: applicantId, 
+        lease_term: parseInt(leaseTerm) || 12, 
+        resident_info: residentInfoObj,
       });
       await api.post(`/api/applications/applications/${resp.data.id}/submit/`);
       setWizardDone(true);
       setWizardStep(4);
     } catch (err) {
-      setWizardError('Submission failed. Please try again or contact support.');
+      const errorMsg = err.response?.data ? JSON.stringify(err.response.data) : err.message;
+      setWizardError(`Submission failed: ${errorMsg}`);
     } finally { setSubmitting(false); }
   };
 
@@ -357,6 +408,7 @@ export default function App() {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
+    <ChatProvider user={user} addToast={addToast}>
     <div className="flex min-h-screen" style={{ background: '#111418', color: '#e8eaed', fontFamily: "'Inter', system-ui, sans-serif" }}>
       <Toast toasts={toasts} removeToast={removeToast} />
 
@@ -381,11 +433,21 @@ export default function App() {
         {/* Nav links */}
         <nav className="p-3 space-y-0.5 mt-1 flex-1">
           <p className="text-[10px] text-[#3a3d45] font-semibold uppercase tracking-widest px-3 mb-2 mt-1">Menu</p>
-          <NavBtn view="listings" icon={Home} label="Browse" />
-          <NavBtn view="apply" icon={ClipboardList} label="Apply"
-            onClick={() => handleInitiateApply(null)} />
-          <NavBtn view="dashboard" icon={LayoutDashboard} label="My Applications"
-            onClick={() => { if (!user) goToAuth(); else setCurrentView('dashboard'); }} />
+          {!user?.isAgent && (
+            <>
+              <NavBtn view="listings" icon={Home} label="Browse" />
+              <NavBtn view="apply" icon={ClipboardList} label="Apply"
+                onClick={() => handleInitiateApply(null)} />
+            </>
+          )}
+          {user?.isAgent ? (
+            <NavBtn view="agent_dashboard" icon={Briefcase} label="Agent Dashboard"
+              onClick={() => setCurrentView('agent_dashboard')} />
+          ) : (
+            <NavBtn view="dashboard" icon={LayoutDashboard} label="My Applications"
+              onClick={() => { if (!user) goToAuth(); else setCurrentView('dashboard'); }} />
+          )}
+          <MessagesNavBtn currentView={currentView} setCurrentView={setCurrentView} />
         </nav>
 
         {/* Stats pill — always visible */}
@@ -432,6 +494,12 @@ export default function App() {
 
       {/* ── MAIN ────────────────────────────────────────────────────────── */}
       <main className="flex-1 overflow-y-auto">
+
+        {/* ══ AGENT DASHBOARD ═══════════════════════════════════════════════ */}
+        {currentView === 'agent_dashboard' && <AgentDashboard user={user} addToast={addToast} />}
+
+        {/* ══ CHAT ════════════════════════════════════════════════════════ */}
+        {currentView === 'chat' && <ChatView user={user} />}
 
         {/* ══ BROWSE ════════════════════════════════════════════════════ */}
         {currentView === 'listings' && (
@@ -519,6 +587,19 @@ export default function App() {
                       <input type="number" value={bathrooms} onChange={e => setBathrooms(e.target.value)}
                              placeholder="Any" className={inputCls} style={{ width: 90 }} />
                     </Field>
+                    <Field label="Search">
+                      <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                             placeholder="Address..." className={inputCls} style={{ width: 150 }} />
+                    </Field>
+                    <Field label="Sort By">
+                      <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                              className={inputCls} style={{ width: 140 }}>
+                        <option value="">Newest</option>
+                        <option value="rent">Price: Low to High</option>
+                        <option value="-rent">Price: High to Low</option>
+                        <option value="available_date">Available: Earliest</option>
+                      </select>
+                    </Field>
                     <button onClick={() => { setCurrentPage(1); fetchListings(); setShowFilters(false); }}
                             className="px-5 py-2.5 rounded-lg text-sm font-medium text-black transition-opacity hover:opacity-90 mb-px"
                             style={{ background: '#f59e0b' }}>
@@ -539,7 +620,7 @@ export default function App() {
                   <Building2 size={36} className="mx-auto text-[#2a2d33] mb-4" />
                   <p className="text-[#9aa0a6] font-medium">No listings match your search</p>
                   <p className="text-sm text-[#5f6368] mt-1">Try different filter values or clear all filters</p>
-                  <button onClick={() => { setRentMin(''); setRentMax(''); setBedrooms(''); setBathrooms(''); fetchListings(); }}
+                  <button onClick={() => { setRentMin(''); setRentMax(''); setBedrooms(''); setBathrooms(''); setSearchQuery(''); setSortBy(''); fetchListings(); }}
                           className="mt-4 text-sm text-[#f59e0b] hover:underline">
                     Clear all filters
                   </button>
@@ -627,6 +708,13 @@ export default function App() {
                           >
                             Apply for this unit <ArrowRight size={13} />
                           </button>
+                          <ContactOwnerBtn 
+                            listing={l} 
+                            user={user} 
+                            goToAuth={goToAuth} 
+                            setCurrentView={setCurrentView} 
+                            addToast={addToast} 
+                          />
                         </div>
                       </div>
                     ))}
@@ -1292,5 +1380,6 @@ export default function App() {
         }
       `}</style>
     </div>
+    </ChatProvider>
   );
 }
