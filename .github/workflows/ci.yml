@@ -98,6 +98,8 @@ jobs:
           DB_PASSWORD: test
           REDIS_URL: redis://localhost:6379/0
           CELERY_BROKER_URL: redis://localhost:6379/1
+          CELERY_RESULT_BACKEND: redis://localhost:6379/2
+          CHANNEL_LAYERS_REDIS_URL: redis://localhost:6379/3
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
           pytest --nomigrations --cov=. --cov-report=xml --junitxml=pytest-report.xml -v || ret=$?
