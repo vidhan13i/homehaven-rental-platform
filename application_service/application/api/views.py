@@ -54,7 +54,8 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         """Approve a rental application."""
-        application = self.get_object()
+        from django.shortcuts import get_object_or_404
+        application = get_object_or_404(Application, pk=pk)
         application.application_status = Application.ApplicationStatus.APPROVED
         application.save()
         return Response(ApplicationSerializer(application).data)
@@ -62,7 +63,8 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         """Reject a rental application."""
-        application = self.get_object()
+        from django.shortcuts import get_object_or_404
+        application = get_object_or_404(Application, pk=pk)
         application.application_status = Application.ApplicationStatus.REJECTED
         application.save()
         return Response(ApplicationSerializer(application).data)
@@ -86,7 +88,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         building_id = request.query_params.get('building_id')
         if not building_id:
             return Response({'error': 'building_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        apps = self.get_queryset().filter(building_ID=building_id)
+        apps = Application.objects.all().filter(building_ID=building_id)
         serializer = ApplicationListSerializer(apps, many=True)
         return Response(serializer.data)
 
@@ -96,7 +98,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         unit_id = request.query_params.get('unit_id')
         if not unit_id:
             return Response({'error': 'unit_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        apps = self.get_queryset().filter(unit_ID=unit_id)
+        apps = Application.objects.all().filter(unit_ID=unit_id)
         serializer = ApplicationListSerializer(apps, many=True)
         return Response(serializer.data)
 
@@ -247,3 +249,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return self.queryset.filter(applicant_ID__profile_ID=self.request.user.id)
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['applicant_ID']
+
+    def create(self, request, *args, **kwargs):
+        print("REQUEST DATA:", request.data)
+        print("REQUEST FILES:", request.FILES)
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print("VALIDATION ERRORS:", serializer.errors)
+        return super().create(request, *args, **kwargs)

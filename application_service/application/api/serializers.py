@@ -47,15 +47,18 @@ class ApplicantListSerializer(serializers.ModelSerializer):
 
 
 class ApplicantCreateUpdateSerializer(serializers.ModelSerializer):
+    profile_ID = serializers.UUIDField(required=True)
+
     class Meta:
         model = Applicant
         fields = [
-            'employer', 'job_title', 'job_start_date',
+            'id', 'profile_ID', 'employer', 'job_title', 'job_start_date',
             'credit_score', 'income', 'savings',
             'expected_movein_date', 'reason',
             'has_rented_before', 'rental_history',
             'marital_status', 'children', 'emergency_info',
         ]
+        read_only_fields = ['id']
 
     def validate_credit_score(self, value):
         if value is not None and (value < 300 or value > 900):
@@ -103,9 +106,13 @@ class ApplicationListSerializer(serializers.ModelSerializer):
 
 class ApplicationCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating applications."""
+    unit_ID = serializers.UUIDField(required=True)
+    building_ID = serializers.UUIDField(required=True)
+    
     class Meta:
         model = Application
         fields = [
-            'unit_ID', 'building_ID', 'applicant_ID',
+            'id', 'unit_ID', 'building_ID', 'applicant_ID',
             'lease_term', 'resident_info',
         ]
+        read_only_fields = ['id']
