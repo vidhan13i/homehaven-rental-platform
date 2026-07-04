@@ -76,7 +76,13 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings
           SECRET_KEY: test-secret-key
         run: |
-          pytest --cov=. --cov-report=xml --junitxml=pytest-report.xml -v
+          pytest --cov=. --cov-report=xml --junitxml=pytest-report.xml -v || ret=$?
+          if [ "${ret:-0}" -eq 5 ]; then
+            echo "No tests found (Exit code 5). Passing gracefully."
+            exit 0
+          elif [ "${ret:-0}" -ne 0 ]; then
+            exit $ret
+          fi
 
       - name: Handle Test Failure Output
         if: failure() && steps.run_tests.outcome == 'failure'
