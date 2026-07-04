@@ -12,3 +12,4 @@ CREATE DATABASE building;
 CREATE DATABASE reviews;
 CREATE DATABASE auth_db;
 CREATE DATABASE chat_db;
+CREATE DATABASE notification_db;

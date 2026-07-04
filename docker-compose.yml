@@ -1,43 +1,84 @@
 # ─── docker-compose.yml ──────────────────────────────────────────────────────
 #
-# What is docker-compose?
-# ─────────────────────────
-# docker-compose is a tool that lets you define and run MULTIPLE Docker
-# containers as one unified system. This file describes:
-#   - What containers to run (services)
-#   - How they connect to each other (networks)
-#   - Where to persist data (volumes)
-#   - What environment variables each container gets
+# HomeHaven Rental Platform — Full Microservices Stack
 #
-# Run everything with: docker compose up --build
+# Architecture: Hybrid Event-Driven + REST
+#   - Nginx Gateway: single entry point for all HTTP/WS traffic
+#   - PostgreSQL: one server hosting all 9 isolated databases
+#   - Redis: Celery broker/result + Django Channels layer
+#   - Apache Kafka + Zookeeper: domain event bus
+#   - Notification Service: independent service with own DB, Celery, WebSocket
+#
+# Start everything: docker compose up --build
 
 services:
 
+  # ─── ZOOKEEPER ─────────────────────────────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: haven_zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - rental_network
+
+  # ─── APACHE KAFKA ──────────────────────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: haven_kafka
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+    networks:
+      - rental_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
   # ─── POSTGRESQL DATABASE ───────────────────────────────────────────────────
-  # One PostgreSQL server hosting all 5 databases.
-  # The init_db.sql script creates all 5 databases on first boot.
   db:
-    image: postgres:15          # Official PostgreSQL 15 image from Docker Hub
+    image: postgres:15
     container_name: db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: postgres     # Default DB (each service has its own too)
+      POSTGRES_DB: postgres
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Data persists across restarts
-      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql  # Runs on first boot
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
     ports:
-      - "5432:5432"             # Expose to your Mac for DB GUI tools (TablePlus, etc.)
+      - "5432:5432"
     networks:
       - rental_network
-    healthcheck:                # Wait until postgres is actually ready before starting services
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   # ─── REDIS ─────────────────────────────────────────────────────────────────
-  # Redis cache and Celery message broker.
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -48,13 +89,11 @@ services:
     restart: unless-stopped
 
   # ─── NGINX GATEWAY ─────────────────────────────────────────────────────────
-  # The "App over it" — single entry point for all requests.
-  # Forwards /api/listings/ → listings_service, etc.
   gateway:
     build: ./gateway
     container_name: gateway
     ports:
-      - "8000:80"               # Your Mac's port 8000 → Nginx port 80 inside container
+      - "8000:80"
     depends_on:
       - listings_service
       - profile_service
@@ -63,36 +102,35 @@ services:
       - reviews_service
       - auth_service
       - chat_service
+      - notification_service
       - redis
     networks:
       - rental_network
-    restart: unless-stopped     # Restart automatically if it crashes
+    restart: unless-stopped
 
-  # ─── LISTINGS SERVICE ──────────────────────────────────────────────────────
-  # Handles: Listings, Units, Agents, Agent Images, Listing Images
-  listings_service:
-    build: ./listings_service   # Docker builds this image from listings_service/Dockerfile
-    container_name: listings_service
-    env_file:
-      - .env
+  # ─── AUTH SERVICE ──────────────────────────────────────────────────────────
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
       - ./shared_lib:/app/shared_lib
     depends_on:
       db:
-        condition: service_healthy  # Wait for postgres to be healthy first
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - rental_network
     restart: unless-stopped
 
   # ─── PROFILE SERVICE ───────────────────────────────────────────────────────
-  # Handles: User Profiles, Email OTP Verification
   profile_service:
     build: ./profile_service
     container_name: profile_service
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
@@ -106,14 +144,12 @@ services:
       - rental_network
     restart: unless-stopped
 
-  # ─── CELERY WORKER ─────────────────────────────────────────────────────────
-  # Background worker for sending emails and other async tasks.
+  # ─── PROFILE CELERY WORKER ─────────────────────────────────────────────────
   celery_worker:
     build: ./profile_service
     container_name: celery_worker
     command: celery -A celery_app worker --loglevel=info
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
@@ -123,35 +159,51 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    networks:
+      - rental_network
+    restart: unless-stopped
+
+  # ─── LISTINGS SERVICE ──────────────────────────────────────────────────────
+  listings_service:
+    build: ./listings_service
+    container_name: listings_service
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - rental_network
     restart: unless-stopped
 
   # ─── APPLICATION SERVICE ───────────────────────────────────────────────────
-  # Handles: Rental Applications, Applicant Profiles, Documents
   application_service:
     build: ./application_service
     container_name: application_service
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
       - ./shared_lib:/app/shared_lib
     depends_on:
       db:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     networks:
       - rental_network
     restart: unless-stopped
 
   # ─── BUILDING SERVICE ──────────────────────────────────────────────────────
-  # Handles: Buildings, Building Images, Amenities, RERA verification
   building_service:
     build: ./building_service
     container_name: building_service
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
@@ -164,48 +216,28 @@ services:
     restart: unless-stopped
 
   # ─── REVIEWS SERVICE ───────────────────────────────────────────────────────
-  # Handles: Crowdsourced Tenant Reviews, Ratings (Openigloo's core feature)
   reviews_service:
     build: ./reviews_service
     container_name: reviews_service
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
       - ./shared_lib:/app/shared_lib
     depends_on:
       db:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     networks:
       - rental_network
     restart: unless-stopped
 
-  # ─── AUTH SERVICE ──────────────────────────────────────────────────────────
-  # Handles: User authentication, JWT issuance, registration
-  auth_service:
-    build: ./auth_service
-    container_name: auth_service
-    env_file:
-      - .env
-    environment:
-      - DJANGO_SETTINGS_MODULE=config.settings
-    volumes:
-      - ./shared_lib:/app/shared_lib
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - rental_network
-    restart: unless-stopped
-  # ─── CHAT SERVICE ─────────────────────────────────────────────────────────────
-  # Handles: Real-time messaging, WebSocket connections, Conversations, Presence
-  # Runs Daphne (ASGI) instead of runserver — required for concurrent WebSocket support
+  # ─── CHAT SERVICE ─────────────────────────────────────────────────────────
   chat_service:
     build: ./chat_service
     container_name: chat_service
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
@@ -215,6 +247,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      kafka:
+        condition: service_healthy
     networks:
       - rental_network
     restart: unless-stopped
@@ -224,15 +258,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # ─── CHAT CELERY WORKER ───────────────────────────────────────────────────────
-  # Background worker for chat notifications (offline user alerts, future email/push/SMS)
-  # Mirrors the existing celery_worker pattern from profile_service
+  # ─── CHAT CELERY WORKER ───────────────────────────────────────────────────
   chat_celery:
     build: ./chat_service
     container_name: chat_celery
     command: celery -A celery_app worker --loglevel=info -Q chat_notifications
-    env_file:
-      - .env
+    env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:
@@ -242,21 +273,114 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - rental_network
+    restart: unless-stopped
+
+  # ─── CHAT KAFKA CONSUMER ─────────────────────────────────────────────────
+  # Consumes ApplicationApproved → auto-creates renter-agent conversation.
+  chat_kafka_consumer:
+    build: ./chat_service
+    container_name: chat_kafka_consumer
+    command: python manage.py run_kafka_consumers
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - rental_network
+    restart: unless-stopped
+
+  # ─── NOTIFICATION SERVICE ─────────────────────────────────────────────────
+  # Completely independent microservice.
+  # Own DB (notification_db), own Celery, own Channels WebSocket server.
+  notification_service:
+    build: ./notification_service
+    container_name: notification_service
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - rental_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/notifications/health/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── NOTIFICATION CELERY WORKER ──────────────────────────────────────────
+  notification_celery:
+    build: ./notification_service
+    container_name: notification_celery
+    command: celery -A celery_app worker --loglevel=info -Q notifications,email_delivery
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - rental_network
+    restart: unless-stopped
+
+  # ─── NOTIFICATION KAFKA CONSUMER ─────────────────────────────────────────
+  # Runs all Kafka consumer threads for the notification service.
+  # Consumes: UserRegistered, ApplicationCreated/Approved/Rejected,
+  #           MessageSent, ReviewCreated, ListingCreated
+  notification_kafka_consumer:
+    build: ./notification_service
+    container_name: notification_kafka_consumer
+    command: python manage.py run_kafka_consumers
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_healthy
     networks:
       - rental_network
     restart: unless-stopped
 
 
-
 # ─── VOLUMES ───────────────────────────────────────────────────────────────
-# Named volumes persist data even when containers are stopped/rebuilt.
-# Without this, all your database data disappears when you run 'docker compose down'!
 volumes:
   postgres_data:
+  kafka_data:
+  zookeeper_data:
 
 # ─── NETWORKS ──────────────────────────────────────────────────────────────
-# All containers join 'rental_network' so they can find each other by name.
-# e.g. 'db', 'listings_service', 'gateway' are all valid hostnames inside this network.
 networks:
   rental_network:
     driver: bridge
