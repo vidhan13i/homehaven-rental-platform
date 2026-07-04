@@ -59,6 +59,7 @@ The following diagrams illustrate the detailed working mechanics of the system d
 During registration, the `auth_service` coordinates with the `profile_service` to build user credentials and profile records. If profile creation fails due to network issues, the user creation is rolled back (deleted) to prevent orphaned login accounts.
 
 ```mermaid
+%%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#009688', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f3f4f6'}}}%%
 sequenceDiagram
     autonumber
     actor User as User Browser
@@ -105,6 +106,7 @@ sequenceDiagram
 Before users can log in, they must verify their email by submitting the 6-digit code. To prevent brute-force attacks on the short code space, the system tracks attempts in Redis and locks the user out after 5 failures.
 
 ```mermaid
+%%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#3b82f6', 'primaryTextColor': '#ffffff', 'lineColor': '#2563eb'}}}%%
 flowchart TD
     Start([User submits 6-digit OTP & email]) --> Request[POST /api/profiles/otp/verify_otp/]
     Request --> CheckLock{Attempts key in Redis >= 5?}
@@ -127,6 +129,7 @@ flowchart TD
 When a user attempts to log in, the `auth_service` checks SimpleJWT credentials and makes a resilient request to the `profile_service` to check email verification status before issuing tokens.
 
 ```mermaid
+%%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#8b5cf6', 'tertiaryColor': '#f3f4f6'}}}%%
 sequenceDiagram
     autonumber
     actor User as User Browser
@@ -159,6 +162,7 @@ sequenceDiagram
 The platform allows applicants to apply for listings. The Application service coordinates building verification and reviews to build the context.
 
 ```mermaid
+%%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#f59e0b', 'tertiaryColor': '#fef3c7'}}}%%
 sequenceDiagram
     autonumber
     actor Applicant as Tenant Browser
@@ -241,3 +245,34 @@ During our latest session, we executed a complete configuration refactor to alig
   * Added request duration tracking (`time.time() - start_time`) and custom stdout stream logs (e.g. `[INFO] resilience - Request to profile_service succeeded. Status: 201, Duration: 0.25s`).
   * Enforced fast timeout constraints (`timeout=2`, `max_attempts=2`) for authentication requests to prevent bad user experiences.
   * Designed explicit, graceful `503 Service Unavailable` JSON responses (`{"message": "<Service Name> temporarily unavailable"}`) upon connection failures.
+
+---
+
+## 5. Recent Issues & Resolutions
+
+During the development and testing of complex microservice interactions, several critical bugs were identified and resolved:
+
+### 1. Agent Application Visibility (Data Siloing)
+* **Issue**: Agents logging into their dashboard were unable to see applications submitted by renters for their properties.
+* **Root Cause**: The `application_service` was overriding the `get_queryset` strictly checking if the user was the "owner" of the application, rather than checking if the user was the agent of the unit the application was tied to.
+* **Fix**: Rewrote the application query logic to execute a cross-service check to the `listings_service`, fetching all units owned by the agent, and filtering the application list to match those units.
+
+### 2. Missing Profile IDs on Application Creation (Microservice Desync)
+* **Issue**: Creating new rental applications failed because the `profile_id` was missing.
+* **Root Cause**: The `auth_service` and `profile_service` UUIDs became desynchronized. The `profile_service` was ignoring the `auth_service` UUID during profile creation and generating its own random UUID.
+* **Fix**: Updated the `ProfileCreateUpdateSerializer` to explicitly accept and enforce the Auth UUID. Re-synced existing user profiles to ensure `Auth.id == Profile.id`.
+
+### 3. Chat UI Message Ordering (Upside-Down Messages)
+* **Issue**: Messages in the chat window were appearing upside down and overlapping awkwardly.
+* **Root Cause**: The `chat_service` REST API was returning messages chronologically oldest-first, and the frontend was appending them in reverse.
+* **Fix**: Added explicit `-created_at` ordering to the backend API view to guarantee a consistent timeline, and updated the React `flex-col` logic to render them top-to-bottom.
+
+### 4. Real-Time Chat Double Messages (Race Condition)
+* **Issue**: When a user sent a message, it appeared on their screen twice instantly.
+* **Root Cause**: A race condition where the ultra-fast Redis WebSocket `receive_message` broadcast beat the REST API `POST` success response. Both systems blindly appended the message to the React state.
+* **Fix**: Implemented a duplicate ID check within the frontend's REST API promise handler to ensure a message is only appended if the WebSocket hasn't already rendered it.
+
+### 5. Chat Offline Presence Bug (Initial State Sync)
+* **Issue**: Users were appearing "Offline" even when they were actively staring at the chat screen.
+* **Root Cause**: While the system correctly broadcasted a `user_online` event *when* someone connected, it failed to tell newly connected users the status of people who were *already* in the room.
+* **Fix**: Updated the Django Channels `chat_consumer.py` to synchronously query Redis for the other participant's presence status during the initial connection handshake, passing `other_user_online` directly into the frontend's initial state.
