@@ -30,14 +30,14 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
 # ─── INSTALLED APPS ───────────────────────────────────────────────────────────
 INSTALLED_APPS = [
-    'drf_spectacular',
+    "drf_spectacular",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "channels",           # Django Channels — required for WebSocket push
+    "channels",  # Django Channels — required for WebSocket push
     "rest_framework",
     "django_filters",
     "corsheaders",
@@ -96,7 +96,7 @@ CHANNEL_LAYERS = {
 
 # ─── REST FRAMEWORK ───────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "notification.authentication.http.TrustedJWTAuthentication",
     ],
@@ -119,8 +119,15 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 CORS_ALLOW_HEADERS = [
-    "accept", "accept-encoding", "authorization", "content-type",
-    "dnt", "origin", "user-agent", "x-csrftoken", "x-requested-with",
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 
 # ─── DATABASE ─────────────────────────────────────────────────────────────────
@@ -267,8 +274,8 @@ LOGGING = {
 
 # ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Notification Service API',
-    'DESCRIPTION': '''Handles resilient delivery of emails and real-time push notifications. 
+    "TITLE": "Notification Service API",
+    "DESCRIPTION": """Handles resilient delivery of emails and real-time push notifications. 
 
 ### WebSockets API
 
@@ -277,13 +284,13 @@ SPECTACULAR_SETTINGS = {
 **Authentication**: Pass JWT token in query parameter.
 
 **Outgoing Events**:
-- `notification`: Pushed when a system event happens (e.g. application approved).''',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-    'COMPONENT_SPLIT_REQUEST': True,
-    'SWAGGER_UI_SETTINGS': {
-        'deepLinking': True,
-        'persistAuthorization': True,
-        'displayOperationId': True,
+- `notification`: Pushed when a system event happens (e.g. application approved).""",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
     },
 }

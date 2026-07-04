@@ -11,6 +11,7 @@ Architecture:
 
 This service is the bridge between real-time (WebSocket) and async (Celery).
 """
+
 import logging
 from typing import Optional
 
@@ -57,6 +58,7 @@ class NotificationService:
         """Queue a Celery task for offline notification delivery."""
         try:
             from chat.tasks.notification_tasks import notify_offline_user
+
             notify_offline_user.apply_async(
                 kwargs={
                     "recipient_id": recipient_id,
@@ -77,7 +79,8 @@ class NotificationService:
             # Never let notification failure block message delivery
             logger.error(
                 "Failed to queue notification for user %s: %s",
-                recipient_id, str(exc),
+                recipient_id,
+                str(exc),
             )
 
     @staticmethod
@@ -90,6 +93,7 @@ class NotificationService:
         Runs the sync notification logic in a thread pool.
         """
         from asgiref.sync import sync_to_async
+
         await sync_to_async(NotificationService.notify_if_offline)(
             message, conversation
         )

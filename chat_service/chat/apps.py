@@ -1,4 +1,5 @@
 """AppConfig for the chat Django application."""
+
 from django.apps import AppConfig
 
 

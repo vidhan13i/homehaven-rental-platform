@@ -12,7 +12,7 @@ to prevent typos and enable IDE refactoring support.
 class Topics:
     # ── Auth Service Events ───────────────────────────────────────────────────
     AUTH_USER_REGISTERED = "auth.user.registered"
-    AUTH_USER_LOGGED_IN  = "auth.user.logged-in"
+    AUTH_USER_LOGGED_IN = "auth.user.logged-in"
 
     # ── Listings Service Events ───────────────────────────────────────────────
     LISTINGS_LISTING_CREATED = "listings.listing.created"
@@ -20,16 +20,16 @@ class Topics:
     LISTINGS_LISTING_DELETED = "listings.listing.deleted"
 
     # ── Application Service Events ────────────────────────────────────────────
-    APPLICATIONS_CREATED  = "applications.application.created"
+    APPLICATIONS_CREATED = "applications.application.created"
     APPLICATIONS_APPROVED = "applications.application.approved"
     APPLICATIONS_REJECTED = "applications.application.rejected"
     APPLICATIONS_SUBMITTED = "applications.application.submitted"
 
     # ── Chat Service Events ───────────────────────────────────────────────────
-    CHAT_MESSAGE_SENT          = "chat.message.sent"
-    CHAT_MESSAGE_DELIVERED     = "chat.message.delivered"
-    CHAT_MESSAGE_SEEN          = "chat.message.seen"
-    CHAT_CONVERSATION_CREATED  = "chat.conversation.created"
+    CHAT_MESSAGE_SENT = "chat.message.sent"
+    CHAT_MESSAGE_DELIVERED = "chat.message.delivered"
+    CHAT_MESSAGE_SEEN = "chat.message.seen"
+    CHAT_CONVERSATION_CREATED = "chat.conversation.created"
 
     # ── Reviews Service Events ────────────────────────────────────────────────
     REVIEWS_REVIEW_CREATED = "reviews.review.created"
@@ -38,7 +38,7 @@ class Topics:
 
     # ── Notification Service Events ───────────────────────────────────────────
     NOTIFICATIONS_CREATED = "notifications.notification.created"
-    NOTIFICATIONS_READ    = "notifications.notification.read"
+    NOTIFICATIONS_READ = "notifications.notification.read"
 
     # ── Dead Letter Queue ─────────────────────────────────────────────────────
     DLQ = "dlq.events"

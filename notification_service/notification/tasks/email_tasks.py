@@ -10,6 +10,7 @@ Design:
   - Includes retry logic with exponential backoff for SMTP failures
   - autoretry_for handles transient SMTP errors automatically
 """
+
 import logging
 from celery import shared_task
 from django.core.mail import send_mail
@@ -23,7 +24,7 @@ logger = logging.getLogger("notification.tasks.email")
     queue="email_delivery",
     max_retries=3,
     default_retry_delay=60,  # 1 minute initial delay, then exponential
-    acks_late=True,          # Acknowledge only after task completes
+    acks_late=True,  # Acknowledge only after task completes
 )
 def send_notification_email(self, notification_id: str, recipient_id: str) -> None:
     """
@@ -35,13 +36,16 @@ def send_notification_email(self, notification_id: str, recipient_id: str) -> No
     """
     try:
         from notification.models import Notification
-        notification = Notification.objects.using("notification").get(id=notification_id)
+
+        notification = Notification.objects.using("notification").get(
+            id=notification_id
+        )
     except Notification.DoesNotExist:
         logger.warning("Notification %s not found for email delivery", notification_id)
         return
     except Exception as exc:
         logger.error("Failed to fetch notification %s: %s", notification_id, exc)
-        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+        raise self.retry(exc=exc, countdown=60 * (2**self.request.retries))
 
     # Build email content based on notification type
     subject = _build_subject(notification)
@@ -65,27 +69,29 @@ def send_notification_email(self, notification_id: str, recipient_id: str) -> No
         )
         logger.info(
             "Notification email sent | notification_id=%s | recipient=%s",
-            notification_id, recipient_email,
+            notification_id,
+            recipient_email,
         )
     except Exception as exc:
         logger.error(
             "Email delivery failed | notification_id=%s | error=%s",
-            notification_id, exc,
+            notification_id,
+            exc,
         )
         # Retry with exponential backoff: 1min, 2min, 4min
-        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+        raise self.retry(exc=exc, countdown=60 * (2**self.request.retries))
 
 
 def _build_subject(notification) -> str:
     """Build email subject from notification type."""
     type_subjects = {
-        "message":     "📬 You have a new message — HomeHaven",
+        "message": "📬 You have a new message — HomeHaven",
         "application": "📋 Application update — HomeHaven",
-        "review":      "⭐ New review — HomeHaven",
-        "listing":     "🏠 New listing available — HomeHaven",
-        "system":      "ℹ️ HomeHaven notification",
-        "security":    "🔒 Security alert — HomeHaven",
-        "chat":        "💬 New message — HomeHaven",
+        "review": "⭐ New review — HomeHaven",
+        "listing": "🏠 New listing available — HomeHaven",
+        "system": "ℹ️ HomeHaven notification",
+        "security": "🔒 Security alert — HomeHaven",
+        "chat": "💬 New message — HomeHaven",
     }
     return type_subjects.get(notification.notification_type, notification.title)
 

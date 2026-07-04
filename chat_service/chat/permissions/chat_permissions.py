@@ -4,6 +4,7 @@ DRF Permission classes for chat service REST endpoints.
 IsConversationParticipant: Only the owner or renter may access a conversation.
 IsMessageSender: Only the original sender may edit or delete a message.
 """
+
 import logging
 from rest_framework.permissions import BasePermission
 

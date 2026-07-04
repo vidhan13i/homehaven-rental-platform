@@ -13,6 +13,7 @@ Design:
   - IsAuthenticated is the base permission; IsConversationParticipant
     enforces object-level access control.
 """
+
 import logging
 import json
 from channels.layers import get_channel_layer
@@ -59,13 +60,24 @@ logger = logging.getLogger("chat.api.views")
 
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
 
+
 @extend_schema_view(
     list=extend_schema(summary="List Conversations", tags=["Chat"]),
     retrieve=extend_schema(summary="Retrieve Conversation", tags=["Chat"]),
-    create=extend_schema(summary="Create Conversation", tags=["Chat"], examples=[OpenApiExample("Create Chat", value={"participant_id": "123"}, request_only=True)]),
+    create=extend_schema(
+        summary="Create Conversation",
+        tags=["Chat"],
+        examples=[
+            OpenApiExample(
+                "Create Chat", value={"participant_id": "123"}, request_only=True
+            )
+        ],
+    ),
     update=extend_schema(summary="Update Conversation", tags=["Chat"]),
-    partial_update=extend_schema(summary="Partially Update Conversation", tags=["Chat"]),
-    destroy=extend_schema(summary="Delete Conversation", tags=["Chat"])
+    partial_update=extend_schema(
+        summary="Partially Update Conversation", tags=["Chat"]
+    ),
+    destroy=extend_schema(summary="Delete Conversation", tags=["Chat"]),
 )
 class ConversationViewSet(viewsets.ModelViewSet):
     """
@@ -111,8 +123,16 @@ class ConversationViewSet(viewsets.ModelViewSet):
         return obj
 
     def get_permissions(self):
-        if self.action in ["retrieve", "destroy", "archive", "pin",
-                            "block", "unblock", "mark_read", "unread_count"]:
+        if self.action in [
+            "retrieve",
+            "destroy",
+            "archive",
+            "pin",
+            "block",
+            "unblock",
+            "mark_read",
+            "unread_count",
+        ]:
             return [IsAuthenticated(), IsConversationParticipant()]
         return [IsAuthenticated()]
 
@@ -215,13 +235,22 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
 # ─── Message ViewSet ──────────────────────────────────────────────────────────
 
+
 @extend_schema_view(
     list=extend_schema(summary="List Messages", tags=["Chat"]),
     retrieve=extend_schema(summary="Retrieve Message", tags=["Chat"]),
-    create=extend_schema(summary="Create Message", tags=["Chat"], examples=[OpenApiExample("Send Message", value={"content": "Hello"}, request_only=True)]),
+    create=extend_schema(
+        summary="Create Message",
+        tags=["Chat"],
+        examples=[
+            OpenApiExample(
+                "Send Message", value={"content": "Hello"}, request_only=True
+            )
+        ],
+    ),
     update=extend_schema(summary="Update Message", tags=["Chat"]),
     partial_update=extend_schema(summary="Partially Update Message", tags=["Chat"]),
-    destroy=extend_schema(summary="Delete Message", tags=["Chat"])
+    destroy=extend_schema(summary="Delete Message", tags=["Chat"]),
 )
 class MessageViewSet(viewsets.ModelViewSet):
     """
@@ -265,10 +294,14 @@ class MessageViewSet(viewsets.ModelViewSet):
         if not user_conversations.exists():
             return Message.objects.none()
 
-        return Message.objects.filter(
-            conversation_id=conversation_id,
-            deleted_at__isnull=True,
-        ).select_related("reply_to").order_by("-created_at")
+        return (
+            Message.objects.filter(
+                conversation_id=conversation_id,
+                deleted_at__isnull=True,
+            )
+            .select_related("reply_to")
+            .order_by("-created_at")
+        )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -336,7 +369,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             {
                 "type": "broadcast.receive_message",
                 "message": safe_message_data,
-            }
+            },
         )
 
         # Publish MessageSent domain event to Kafka (fire-and-forget)
@@ -345,9 +378,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             # Determine the recipient (the other participant in the conversation)
             participants = list(conversation.participants)
             sender_id = str(request.user.id)
-            recipient_id = next(
-                (p for p in participants if str(p) != sender_id), None
-            )
+            recipient_id = next((p for p in participants if str(p) != sender_id), None)
             kafka_event = build_event(
                 event_type="MessageSent",
                 aggregate_id=str(message.id),
@@ -429,7 +460,9 @@ class MessageViewSet(viewsets.ModelViewSet):
             return Response({"error": error}, status=status.HTTP_404_NOT_FOUND)
 
         is_starred = str(request.user.id) in (message.starred_by or [])
-        return Response({"starred": is_starred, "message": MessageSerializer(message).data})
+        return Response(
+            {"starred": is_starred, "message": MessageSerializer(message).data}
+        )
 
     @action(detail=True, methods=["post"])
     def forward(self, request, pk=None):
@@ -451,7 +484,9 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         # Validate target conversation
         target_conversation = ConversationRepository.get_by_id(target_conversation_id)
-        if not target_conversation or not target_conversation.is_participant(str(request.user.id)):
+        if not target_conversation or not target_conversation.is_participant(
+            str(request.user.id)
+        ):
             return Response(
                 {"error": "Target conversation not found or access denied"},
                 status=status.HTTP_404_NOT_FOUND,
@@ -480,11 +515,14 @@ class MessageViewSet(viewsets.ModelViewSet):
         conversation_id = request.query_params.get("conversation")
 
         if not query:
-            return Response({"error": "q parameter is required"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "q parameter is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if not conversation_id:
-            return Response({"error": "conversation parameter is required"},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "conversation parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         messages = MessageService.search_messages(
             conversation_id=conversation_id,
@@ -503,6 +541,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
 # ─── Presence View ────────────────────────────────────────────────────────────
 
+
 class PresenceView(APIView):
     """
     GET /api/chat/presence/<user_id>/
@@ -518,6 +557,7 @@ class PresenceView(APIView):
 
 
 # ─── Health View ──────────────────────────────────────────────────────────────
+
 
 class HealthView(APIView):
     """
@@ -539,6 +579,7 @@ class HealthView(APIView):
         # ── Check PostgreSQL ──────────────────────────────────────────────────
         try:
             from django.db import connections
+
             connections["chat"].ensure_connection()
             health["checks"]["database"] = "ok"
         except Exception as exc:
@@ -549,6 +590,7 @@ class HealthView(APIView):
         try:
             import redis
             from django.conf import settings
+
             r = redis.from_url(
                 settings.CHANNEL_LAYERS_REDIS_URL, socket_connect_timeout=2
             )
@@ -562,6 +604,7 @@ class HealthView(APIView):
         try:
             import redis
             from django.conf import settings
+
             r = redis.from_url(settings.REDIS_URL, socket_connect_timeout=2)
             r.ping()
             health["checks"]["redis_cache"] = "ok"
@@ -574,5 +617,9 @@ class HealthView(APIView):
 
         return Response(
             health,
-            status=status.HTTP_200_OK if overall_ok else status.HTTP_503_SERVICE_UNAVAILABLE,
+            status=(
+                status.HTTP_200_OK
+                if overall_ok
+                else status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
         )

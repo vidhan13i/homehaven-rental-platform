@@ -18,6 +18,7 @@ Design decisions:
     a single boolean that represents the owner's pin state. A production system
     would use a separate UserConversationState model for per-user pin/archive state.
 """
+
 import uuid
 from django.db import models
 from .base import ChatBaseModel
@@ -28,8 +29,8 @@ class Conversation(ChatBaseModel):
 
     # Foreign references — stored as UUIDs, resolved via inter-service HTTP calls
     listing_id = models.UUIDField(db_index=True)
-    owner_id = models.UUIDField(db_index=True)    # Listing owner
-    renter_id = models.UUIDField(db_index=True)   # Applicant / tenant
+    owner_id = models.UUIDField(db_index=True)  # Listing owner
+    renter_id = models.UUIDField(db_index=True)  # Applicant / tenant
 
     # Denormalized last-message fields for fast conversation list rendering
     last_message = models.TextField(null=True, blank=True)

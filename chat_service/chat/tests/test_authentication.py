@@ -1,6 +1,7 @@
 """
 Unit tests for JWT authentication (HTTP and WebSocket).
 """
+
 import uuid
 import time
 

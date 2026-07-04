@@ -14,6 +14,7 @@ Design decisions:
   - The model is write-heavy but read from Redis, so the DB record is updated
     on disconnect and on the first online event (not every heartbeat).
 """
+
 from django.db import models
 from django.utils import timezone
 

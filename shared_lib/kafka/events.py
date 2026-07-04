@@ -27,6 +27,7 @@ Example:
         }
     }
 """
+
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
@@ -55,14 +56,14 @@ def build_event(
         Dict ready to be JSON-serialized and published to Kafka
     """
     return {
-        "event_id":      str(uuid.uuid4()),
-        "event_type":    event_type,
-        "timestamp":     datetime.now(timezone.utc).isoformat(),
+        "event_id": str(uuid.uuid4()),
+        "event_type": event_type,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "source_service": source_service,
-        "aggregate_id":  str(aggregate_id),
+        "aggregate_id": str(aggregate_id),
         "correlation_id": correlation_id or str(uuid.uuid4()),
-        "version":       version,
-        "payload":       payload,
+        "version": version,
+        "payload": payload,
     }
 
 
@@ -73,7 +74,11 @@ def validate_event(event: Dict[str, Any]) -> bool:
     Returns True if valid, False if malformed (consumer should send to DLQ).
     """
     required_fields = {
-        "event_id", "event_type", "timestamp",
-        "source_service", "aggregate_id", "payload"
+        "event_id",
+        "event_type",
+        "timestamp",
+        "source_service",
+        "aggregate_id",
+        "payload",
     }
     return required_fields.issubset(event.keys())

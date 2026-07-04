@@ -24,6 +24,7 @@ Usage:
     )
     consumer.start()  # blocks; runs forever until stop() is called
 """
+
 import json
 import logging
 import os
@@ -36,6 +37,7 @@ logger = logging.getLogger("kafka.consumer")
 
 try:
     from confluent_kafka import Consumer, KafkaException, KafkaError, Message
+
     KAFKA_AVAILABLE = True
 except ImportError:
     KAFKA_AVAILABLE = False
@@ -97,7 +99,8 @@ class BaseKafkaConsumer(ABC):
             self._consumer = Consumer(config)
             logger.info(
                 "Kafka consumer initialized | group=%s | topics=%s",
-                self.group_id, self.topics,
+                self.group_id,
+                self.topics,
             )
         except KafkaException as exc:
             logger.error("Failed to initialize Kafka consumer: %s", exc)
@@ -107,33 +110,42 @@ class BaseKafkaConsumer(ABC):
         """Initialize a lightweight producer for Dead Letter Queue."""
         try:
             from confluent_kafka import Producer
-            self._dlq_producer = Producer({
-                "bootstrap.servers": self.bootstrap_servers,
-                "acks": "1",
-            })
+
+            self._dlq_producer = Producer(
+                {
+                    "bootstrap.servers": self.bootstrap_servers,
+                    "acks": "1",
+                }
+            )
         except Exception:
             self._dlq_producer = None
 
     def _send_to_dlq(self, raw_message: bytes, error_reason: str) -> None:
         """Send a failed message to the Dead Letter Queue topic."""
         from shared_lib.kafka.topics import Topics
+
         if not self._dlq_producer:
-            logger.error("DLQ producer unavailable. Failed message lost: %s", error_reason)
+            logger.error(
+                "DLQ producer unavailable. Failed message lost: %s", error_reason
+            )
             return
 
-        dlq_payload = json.dumps({
-            "original_message": raw_message.decode("utf-8", errors="replace"),
-            "consumer_group": self.group_id,
-            "error": error_reason,
-            "timestamp": time.time(),
-        }).encode("utf-8")
+        dlq_payload = json.dumps(
+            {
+                "original_message": raw_message.decode("utf-8", errors="replace"),
+                "consumer_group": self.group_id,
+                "error": error_reason,
+                "timestamp": time.time(),
+            }
+        ).encode("utf-8")
 
         try:
             self._dlq_producer.produce(Topics.DLQ, value=dlq_payload)
             self._dlq_producer.flush(5)
             logger.warning(
                 "Message sent to DLQ | group=%s | reason=%s",
-                self.group_id, error_reason,
+                self.group_id,
+                error_reason,
             )
         except Exception as exc:
             logger.error("Failed to send message to DLQ: %s", exc)
@@ -152,6 +164,7 @@ class BaseKafkaConsumer(ABC):
 
         # Step 2: Validate event envelope
         from shared_lib.kafka.events import validate_event
+
         if not validate_event(event):
             logger.error(
                 "Invalid event envelope: missing required fields | event=%s", event
@@ -165,7 +178,10 @@ class BaseKafkaConsumer(ABC):
 
         logger.info(
             "Processing event | event_id=%s | type=%s | correlation_id=%s | group=%s",
-            event_id, event_type, correlation_id, self.group_id,
+            event_id,
+            event_type,
+            correlation_id,
+            self.group_id,
         )
 
         # Step 3: Process with retry
@@ -175,14 +191,19 @@ class BaseKafkaConsumer(ABC):
                 self.handle(event)
                 logger.info(
                     "Event processed successfully | event_id=%s | type=%s | attempt=%d",
-                    event_id, event_type, attempt
+                    event_id,
+                    event_type,
+                    attempt,
                 )
                 return  # Success — exit retry loop
             except Exception as exc:
                 last_error = exc
                 logger.warning(
                     "Event processing failed (attempt %d/%d) | event_id=%s | error=%s",
-                    attempt, self.MAX_RETRIES, event_id, exc
+                    attempt,
+                    self.MAX_RETRIES,
+                    event_id,
+                    exc,
                 )
                 if attempt < self.MAX_RETRIES:
                     time.sleep(self.RETRY_BACKOFF_SECONDS * attempt)
@@ -190,7 +211,9 @@ class BaseKafkaConsumer(ABC):
         # Step 4: All retries exhausted — send to DLQ
         logger.error(
             "Max retries exceeded | event_id=%s | type=%s | final_error=%s | sending to DLQ",
-            event_id, event_type, last_error,
+            event_id,
+            event_type,
+            last_error,
         )
         self._send_to_dlq(raw_value, f"MaxRetriesExceeded: {last_error}")
 
@@ -213,8 +236,7 @@ class BaseKafkaConsumer(ABC):
         self._running = True
 
         logger.info(
-            "Consumer started | group=%s | topics=%s",
-            self.group_id, self.topics
+            "Consumer started | group=%s | topics=%s", self.group_id, self.topics
         )
 
         try:

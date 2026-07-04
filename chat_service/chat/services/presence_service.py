@@ -6,6 +6,7 @@ Consumers and views call this; presence_repository handles the actual Redis/DB o
 
 Provides both sync (for REST API views) and async (for WebSocket consumer) methods.
 """
+
 import logging
 
 from asgiref.sync import sync_to_async

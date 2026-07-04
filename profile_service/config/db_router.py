@@ -3,6 +3,7 @@ class ProfilesRouter:
     Routes all DB operations for the 'profiles_app' app
     to the dedicated 'profiles_app' database.
     """
+
     route_app_labels = {"profiles_app"}
 
     def db_for_read(self, model, **hints):
@@ -17,8 +18,8 @@ class ProfilesRouter:
 
     def allow_relation(self, obj1, obj2, **hints):
         if (
-            obj1._meta.app_label in self.route_app_labels and
-            obj2._meta.app_label in self.route_app_labels
+            obj1._meta.app_label in self.route_app_labels
+            and obj2._meta.app_label in self.route_app_labels
         ):
             return True
         return None

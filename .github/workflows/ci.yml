@@ -99,7 +99,7 @@ jobs:
           CELERY_BROKER_URL: redis://localhost:6379/1
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
-          pytest --cov=. --cov-report=xml --junitxml=pytest-report.xml -v || ret=$?
+          pytest --nomigrations --cov=. --cov-report=xml --junitxml=pytest-report.xml -v || ret=$?
           if [ "${ret:-0}" -eq 5 ]; then
             echo "No tests found (Exit code 5). Passing gracefully."
             exit 0

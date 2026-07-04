@@ -34,6 +34,7 @@ Close codes:
   4004  Conversation not found
   4005  Conversation is blocked
 """
+
 import json
 import logging
 
@@ -146,17 +147,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         # ── Step 8: Send connection confirmation to THIS client only ──────────
-        other_user_id = str(self.conversation.renter_id) if str(self.user.id) == str(self.conversation.owner_id) else str(self.conversation.owner_id)
+        other_user_id = (
+            str(self.conversation.renter_id)
+            if str(self.user.id) == str(self.conversation.owner_id)
+            else str(self.conversation.owner_id)
+        )
         from asgiref.sync import sync_to_async
-        other_user_online = await sync_to_async(PresenceService.is_online)(other_user_id)
 
-        await self.send(text_data=json.dumps({
-            "type": "connected",
-            "conversation_id": self.conversation_id,
-            "user_id": str(self.user.id),
-            "other_user_id": other_user_id,
-            "other_user_online": other_user_online,
-        }))
+        other_user_online = await sync_to_async(PresenceService.is_online)(
+            other_user_id
+        )
+
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "connected",
+                    "conversation_id": self.conversation_id,
+                    "user_id": str(self.user.id),
+                    "other_user_id": other_user_id,
+                    "other_user_online": other_user_online,
+                }
+            )
+        )
 
     async def websocket_disconnect(self, close_code: int) -> None:
         """
@@ -207,12 +219,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         event_type = data.get("type")
         handlers = {
-            "send_message":  self._handle_send_message,
-            "typing":        self._handle_typing,
-            "stop_typing":   self._handle_stop_typing,
-            "message_seen":  self._handle_message_seen,
-            "mark_read":     self._handle_mark_read,
-            "heartbeat":     self._handle_heartbeat,
+            "send_message": self._handle_send_message,
+            "typing": self._handle_typing,
+            "stop_typing": self._handle_stop_typing,
+            "message_seen": self._handle_message_seen,
+            "mark_read": self._handle_mark_read,
+            "heartbeat": self._handle_heartbeat,
         }
 
         handler = handlers.get(event_type)
@@ -292,6 +304,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         from asgiref.sync import sync_to_async
         from chat.repositories import MessageRepository
+
         await sync_to_async(MessageRepository.mark_seen)(message_id)
 
         # Broadcast read receipt to the conversation group
@@ -310,19 +323,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
             conversation_id=self.conversation_id,
             user_id=str(self.user.id),
         )
-        await self.send(text_data=json.dumps({
-            "type": "mark_read_ack",
-            "conversation_id": self.conversation_id,
-            "marked_count": count,
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "mark_read_ack",
+                    "conversation_id": self.conversation_id,
+                    "marked_count": count,
+                }
+            )
+        )
 
     async def _handle_heartbeat(self, data: dict) -> None:
         """Refresh presence TTL on heartbeat. Respond with pong."""
         await PresenceService.async_refresh(str(self.user.id))
-        await self.send(text_data=json.dumps({
-            "type": "pong",
-            "user_id": str(self.user.id),
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "pong",
+                    "user_id": str(self.user.id),
+                }
+            )
+        )
 
     # ──────────────────────────────────────────────────────────────────────────
     # Broadcast handlers: channel layer → WebSocket
@@ -332,66 +353,98 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def broadcast_receive_message(self, event: dict) -> None:
         """Forward a new message to this WebSocket client."""
-        await self.send(text_data=json.dumps({
-            "type": "receive_message",
-            "message": event["message"],
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "receive_message",
+                    "message": event["message"],
+                }
+            )
+        )
 
     async def broadcast_user_typing(self, event: dict) -> None:
         """Forward typing indicator (only to other clients, not the sender)."""
         if event.get("user_id") != str(self.user.id):
-            await self.send(text_data=json.dumps({
-                "type": "user_typing",
-                "user_id": event["user_id"],
-                "username": event.get("username"),
-            }))
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "user_typing",
+                        "user_id": event["user_id"],
+                        "username": event.get("username"),
+                    }
+                )
+            )
 
     async def broadcast_user_stop_typing(self, event: dict) -> None:
         """Forward stop-typing indicator."""
         if event.get("user_id") != str(self.user.id):
-            await self.send(text_data=json.dumps({
-                "type": "user_stop_typing",
-                "user_id": event["user_id"],
-                "username": event.get("username"),
-            }))
+            await self.send(
+                text_data=json.dumps(
+                    {
+                        "type": "user_stop_typing",
+                        "user_id": event["user_id"],
+                        "username": event.get("username"),
+                    }
+                )
+            )
 
     async def broadcast_message_seen(self, event: dict) -> None:
         """Forward read receipt."""
-        await self.send(text_data=json.dumps({
-            "type": "message_seen",
-            "message_id": event["message_id"],
-            "user_id": event["user_id"],
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "message_seen",
+                    "message_id": event["message_id"],
+                    "user_id": event["user_id"],
+                }
+            )
+        )
 
     async def broadcast_user_online(self, event: dict) -> None:
         """Forward user_online presence event."""
-        await self.send(text_data=json.dumps({
-            "type": "user_online",
-            "user_id": event["user_id"],
-            "username": event.get("username"),
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "user_online",
+                    "user_id": event["user_id"],
+                    "username": event.get("username"),
+                }
+            )
+        )
 
     async def broadcast_user_offline(self, event: dict) -> None:
         """Forward user_offline presence event."""
-        await self.send(text_data=json.dumps({
-            "type": "user_offline",
-            "user_id": event["user_id"],
-            "username": event.get("username"),
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "user_offline",
+                    "user_id": event["user_id"],
+                    "username": event.get("username"),
+                }
+            )
+        )
 
     async def broadcast_message_edited(self, event: dict) -> None:
         """Forward edited message to this client."""
-        await self.send(text_data=json.dumps({
-            "type": "message_edited",
-            "message": event["message"],
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "message_edited",
+                    "message": event["message"],
+                }
+            )
+        )
 
     async def broadcast_message_deleted(self, event: dict) -> None:
         """Forward soft-delete notification."""
-        await self.send(text_data=json.dumps({
-            "type": "message_deleted",
-            "message_id": event["message_id"],
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "message_deleted",
+                    "message_id": event["message_id"],
+                }
+            )
+        )
 
     # ──────────────────────────────────────────────────────────────────────────
     # Helpers
@@ -399,10 +452,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def _send_error(self, detail: str) -> None:
         """Send an error message to this client only."""
-        await self.send(text_data=json.dumps({
-            "type": "error",
-            "detail": detail,
-        }))
+        await self.send(
+            text_data=json.dumps(
+                {
+                    "type": "error",
+                    "detail": detail,
+                }
+            )
+        )
 
     @staticmethod
     def _serialize_message(message) -> dict:
@@ -416,12 +473,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             "attachment": message.attachment,
             "attachment_name": message.attachment_name,
             "reply_to_id": str(message.reply_to_id) if message.reply_to_id else None,
-            "forwarded_from": str(message.forwarded_from) if message.forwarded_from else None,
+            "forwarded_from": (
+                str(message.forwarded_from) if message.forwarded_from else None
+            ),
             "is_edited": message.is_edited,
             "is_deleted": message.is_deleted,
             "reactions": message.reactions,
             "starred_by": message.starred_by,
-            "delivered_at": message.delivered_at.isoformat() if message.delivered_at else None,
+            "delivered_at": (
+                message.delivered_at.isoformat() if message.delivered_at else None
+            ),
             "seen_at": message.seen_at.isoformat() if message.seen_at else None,
             "created_at": message.created_at.isoformat(),
         }

@@ -10,6 +10,7 @@ Why bleach?
   - For plain-text messages, we strip all HTML entirely.
   - For future rich-text support, the allowed_tags whitelist can be extended.
 """
+
 import logging
 import re
 from typing import Optional
@@ -57,16 +58,14 @@ def sanitize_message_content(content: str) -> str:
         content,
         tags=_ALLOWED_TAGS,
         attributes=_ALLOWED_ATTRIBUTES,
-        strip=True,           # Remove disallowed tags (don't escape them)
+        strip=True,  # Remove disallowed tags (don't escape them)
         strip_comments=True,
     )
 
     # 4. Truncate to max length
     if len(content) > _MAX_MESSAGE_LENGTH:
         content = content[:_MAX_MESSAGE_LENGTH]
-        logger.warning(
-            "Message truncated to %d characters", _MAX_MESSAGE_LENGTH
-        )
+        logger.warning("Message truncated to %d characters", _MAX_MESSAGE_LENGTH)
 
     return content
 
@@ -90,5 +89,6 @@ def validate_message_content(content: str) -> Optional[str]:
 def validate_message_type(message_type: str) -> bool:
     """Validate that the message_type is a known value."""
     from chat.models.message import Message
+
     valid_types = [choice[0] for choice in Message.MessageType.choices]
     return message_type in valid_types

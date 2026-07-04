@@ -3,6 +3,7 @@ Message Repository.
 
 Encapsulates all database access for Message objects.
 """
+
 import logging
 import uuid
 from typing import Optional
@@ -37,9 +38,11 @@ class MessageRepository:
         Fetch all messages for a conversation, ordered oldest-first.
         Excludes soft-deleted messages by default.
         """
-        qs = Message.objects.filter(
-            conversation_id=conversation_id
-        ).select_related("reply_to").order_by("created_at")
+        qs = (
+            Message.objects.filter(conversation_id=conversation_id)
+            .select_related("reply_to")
+            .order_by("created_at")
+        )
 
         if not include_deleted:
             qs = qs.filter(deleted_at__isnull=True)
@@ -113,53 +116,53 @@ class MessageRepository:
     @staticmethod
     def mark_delivered(message_id: str) -> None:
         """Mark a message as delivered to the recipient."""
-        Message.objects.filter(
-            id=message_id, delivered_at__isnull=True
-        ).update(delivered_at=timezone.now(), updated_at=timezone.now())
+        Message.objects.filter(id=message_id, delivered_at__isnull=True).update(
+            delivered_at=timezone.now(), updated_at=timezone.now()
+        )
 
     @staticmethod
     def mark_seen(message_id: str) -> None:
         """Mark a message as seen by the recipient."""
-        Message.objects.filter(
-            id=message_id, seen_at__isnull=True
-        ).update(
+        Message.objects.filter(id=message_id, seen_at__isnull=True).update(
             seen_at=timezone.now(),
             delivered_at=timezone.now(),
             updated_at=timezone.now(),
         )
 
     @staticmethod
-    def mark_all_seen_in_conversation(
-        conversation_id: str, user_id: str
-    ) -> int:
+    def mark_all_seen_in_conversation(conversation_id: str, user_id: str) -> int:
         """
         Mark all messages in a conversation as seen by a specific user
         (i.e., messages NOT sent by that user that haven't been seen yet).
         Returns the count of updated messages.
         """
-        updated = Message.objects.filter(
-            conversation_id=conversation_id,
-            seen_at__isnull=True,
-            deleted_at__isnull=True,
-        ).exclude(
-            sender_id=uuid.UUID(str(user_id))
-        ).update(
-            seen_at=timezone.now(),
-            delivered_at=timezone.now(),
-            updated_at=timezone.now(),
+        updated = (
+            Message.objects.filter(
+                conversation_id=conversation_id,
+                seen_at__isnull=True,
+                deleted_at__isnull=True,
+            )
+            .exclude(sender_id=uuid.UUID(str(user_id)))
+            .update(
+                seen_at=timezone.now(),
+                delivered_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
         )
         return updated
 
     @staticmethod
     def get_unread_count(conversation_id: str, user_id: str) -> int:
         """Count messages not yet seen by user_id in a conversation."""
-        return Message.objects.filter(
-            conversation_id=conversation_id,
-            seen_at__isnull=True,
-            deleted_at__isnull=True,
-        ).exclude(
-            sender_id=uuid.UUID(str(user_id))
-        ).count()
+        return (
+            Message.objects.filter(
+                conversation_id=conversation_id,
+                seen_at__isnull=True,
+                deleted_at__isnull=True,
+            )
+            .exclude(sender_id=uuid.UUID(str(user_id)))
+            .count()
+        )
 
     @staticmethod
     def add_reaction(message_id: str, user_id: str, emoji: str) -> Optional[Message]:
@@ -209,9 +212,11 @@ class MessageRepository:
     @staticmethod
     def search(conversation_id: str, query: str) -> QuerySet:
         """Full-text search across non-deleted messages in a conversation."""
-        return Message.objects.filter(
-            conversation_id=conversation_id,
-            deleted_at__isnull=True,
-        ).filter(
-            content__icontains=query
-        ).order_by("-created_at")
+        return (
+            Message.objects.filter(
+                conversation_id=conversation_id,
+                deleted_at__isnull=True,
+            )
+            .filter(content__icontains=query)
+            .order_by("-created_at")
+        )

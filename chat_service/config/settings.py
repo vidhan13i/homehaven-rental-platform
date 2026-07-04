@@ -34,14 +34,14 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
 # ─── INSTALLED APPS ───────────────────────────────────────────────────────────
 INSTALLED_APPS = [
-    'drf_spectacular',
+    "drf_spectacular",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "channels",           # Django Channels — must be before app
+    "channels",  # Django Channels — must be before app
     "rest_framework",
     "django_filters",
     "corsheaders",
@@ -96,15 +96,15 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [CHANNEL_LAYERS_REDIS_URL],
-            "capacity": 1500,         # Max messages queued per channel
-            "expiry": 10,             # Seconds before an undelivered message expires
+            "capacity": 1500,  # Max messages queued per channel
+            "expiry": 10,  # Seconds before an undelivered message expires
         },
     },
 }
 
 # ─── REST FRAMEWORK ───────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "chat.authentication.http.TrustedJWTAuthentication",
     ],
@@ -301,8 +301,8 @@ LOGGING = {
 
 # ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Chat Service API',
-    'DESCRIPTION': '''Real-time chat functionality between users. 
+    "TITLE": "Chat Service API",
+    "DESCRIPTION": """Real-time chat functionality between users. 
 
 ### WebSockets API
 
@@ -314,13 +314,13 @@ SPECTACULAR_SETTINGS = {
 - `chat_message`: Send a message to a conversation.
 
 **Outgoing Events**:
-- `chat_message`: Received when a message is sent to a conversation you are in.''',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-    'COMPONENT_SPLIT_REQUEST': True,
-    'SWAGGER_UI_SETTINGS': {
-        'deepLinking': True,
-        'persistAuthorization': True,
-        'displayOperationId': True,
+- `chat_message`: Received when a message is sent to a conversation you are in.""",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
     },
 }

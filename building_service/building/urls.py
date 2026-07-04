@@ -8,21 +8,27 @@ from building.api.api_views import (
 )
 
 router = DefaultRouter()
-router.register(r'buildings', BuildingViewSet, basename='building')
-router.register(r'building-images', BuildingImageViewSet, basename='building-image')
+router.register(r"buildings", BuildingViewSet, basename="building")
+router.register(r"building-images", BuildingImageViewSet, basename="building-image")
 
-app_name = 'building_api'
+app_name = "building_api"
 
 urlpatterns = [
     # All ViewSet routes (CRUD + custom actions)
-    path('', include(router.urls)),
-
+    path("", include(router.urls)),
     # Public-facing endpoints (read-only)
-    path('buildings/public/', PublicBuildingListView.as_view(), name='public-building-list'),
-    path('buildings/public/<slug:slug>/', PublicBuildingDetailView.as_view(), name='public-building-detail'),
-
+    path(
+        "buildings/public/",
+        PublicBuildingListView.as_view(),
+        name="public-building-list",
+    ),
+    path(
+        "buildings/public/<slug:slug>/",
+        PublicBuildingDetailView.as_view(),
+        name="public-building-detail",
+    ),
     # DRF browsable API login/logout
-    path('api-auth/', include('rest_framework.urls')),
+    path("api-auth/", include("rest_framework.urls")),
 ]
 
 

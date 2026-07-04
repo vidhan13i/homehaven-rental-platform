@@ -2,6 +2,7 @@ from django.db import models
 
 from ..common.models import BaseModel
 
+
 class Document(BaseModel):
     label = models.CharField(
         max_length=255,

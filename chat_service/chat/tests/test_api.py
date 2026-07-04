@@ -4,6 +4,7 @@ API integration tests for chat_service REST endpoints.
 Uses Django's test database (chat_db via database router).
 Authenticates with a real JWT signed with the test secret.
 """
+
 import uuid
 import time
 import jwt
@@ -16,7 +17,9 @@ from chat.models import Conversation, Message
 TEST_JWT_SECRET = "test-secret-key-for-api-tests"
 
 
-def _make_jwt(user_id: str, username: str = "testuser", email: str = "t@test.com") -> str:
+def _make_jwt(
+    user_id: str, username: str = "testuser", email: str = "t@test.com"
+) -> str:
     """Generate a valid JWT for a test user."""
     payload = {
         "user_id": user_id,
@@ -27,7 +30,9 @@ def _make_jwt(user_id: str, username: str = "testuser", email: str = "t@test.com
     return jwt.encode(payload, TEST_JWT_SECRET, algorithm="HS256")
 
 
-def _create_conversation(owner_id: str, renter_id: str, listing_id: str = None) -> Conversation:
+def _create_conversation(
+    owner_id: str, renter_id: str, listing_id: str = None
+) -> Conversation:
     """Helper to create a conversation directly in the test DB."""
     return Conversation.objects.using("chat").create(
         listing_id=uuid.UUID(str(listing_id or uuid.uuid4())),
@@ -55,11 +60,15 @@ class ConversationAPITest(TestCase):
     def test_create_conversation_as_owner(self):
         """Owner can create a conversation for a listing they own."""
         listing_id = str(uuid.uuid4())
-        response = self.client.post("/api/chat/conversations/", {
-            "listing_id": listing_id,
-            "owner_id": self.owner_id,
-            "renter_id": self.renter_id,
-        }, format="json")
+        response = self.client.post(
+            "/api/chat/conversations/",
+            {
+                "listing_id": listing_id,
+                "owner_id": self.owner_id,
+                "renter_id": self.renter_id,
+            },
+            format="json",
+        )
 
         self.assertEqual(response.status_code, 201)
         data = response.json()
@@ -83,11 +92,15 @@ class ConversationAPITest(TestCase):
 
     def test_create_self_conversation_rejected(self):
         """Cannot create a conversation where owner == renter."""
-        response = self.client.post("/api/chat/conversations/", {
-            "listing_id": str(uuid.uuid4()),
-            "owner_id": self.owner_id,
-            "renter_id": self.owner_id,
-        }, format="json")
+        response = self.client.post(
+            "/api/chat/conversations/",
+            {
+                "listing_id": str(uuid.uuid4()),
+                "owner_id": self.owner_id,
+                "renter_id": self.owner_id,
+            },
+            format="json",
+        )
         self.assertEqual(response.status_code, 400)
 
     def test_list_returns_only_user_conversations(self):
@@ -152,11 +165,15 @@ class MessageAPITest(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
 
     def _post_message(self, content: str = "Hello!", message_type: str = "text"):
-        return self.client.post("/api/chat/messages/", {
-            "conversation": str(self.conversation.id),
-            "content": content,
-            "message_type": message_type,
-        }, format="json")
+        return self.client.post(
+            "/api/chat/messages/",
+            {
+                "conversation": str(self.conversation.id),
+                "content": content,
+                "message_type": message_type,
+            },
+            format="json",
+        )
 
     def test_send_message(self):
         """Can send a text message via REST API."""

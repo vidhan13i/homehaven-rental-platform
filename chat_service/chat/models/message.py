@@ -17,6 +17,7 @@ Design decisions:
   - starred_by: JSONField [user_id, ...] — who has starred this message
   - forwarded_from: reference to original message UUID if forwarded
 """
+
 from django.db import models
 from django.utils import timezone
 from .base import ChatBaseModel

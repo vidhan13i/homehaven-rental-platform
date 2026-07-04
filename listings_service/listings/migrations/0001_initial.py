@@ -9,92 +9,162 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Agent',
+            name="Agent",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('first_name', models.CharField(max_length=200)),
-                ('last_name', models.CharField(max_length=200)),
-                ('email', models.EmailField(blank=True, max_length=254, null=True)),
-                ('phone_number', models.IntegerField(blank=True, null=True)),
-                ('agent_organization', models.CharField(max_length=200)),
-                ('agent_experience', models.IntegerField(blank=True, null=True)),
-                ('is_agent_verified', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("first_name", models.CharField(max_length=200)),
+                ("last_name", models.CharField(max_length=200)),
+                ("email", models.EmailField(blank=True, max_length=254, null=True)),
+                ("phone_number", models.IntegerField(blank=True, null=True)),
+                ("agent_organization", models.CharField(max_length=200)),
+                ("agent_experience", models.IntegerField(blank=True, null=True)),
+                ("is_agent_verified", models.BooleanField(default=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='AgentImages',
+            name="AgentImages",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('agent_image_url', models.URLField()),
-                ('agent_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='listings.agent')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("agent_image_url", models.URLField()),
+                (
+                    "agent_ID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="listings.agent"
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Unit',
+            name="Unit",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('full_address', models.CharField(max_length=200)),
-                ('unit_no', models.CharField(max_length=40)),
-                ('unit_slug', models.SlugField(max_length=200)),
-                ('no_bedrooms', models.IntegerField(blank=True, null=True)),
-                ('no_bathrooms', models.IntegerField(blank=True, null=True)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('is_furnished', models.BooleanField(default=False)),
-                ('is_semi_furnished', models.BooleanField(default=False)),
-                ('agent_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='units', to='listings.agent')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("full_address", models.CharField(max_length=200)),
+                ("unit_no", models.CharField(max_length=40)),
+                ("unit_slug", models.SlugField(max_length=200)),
+                ("no_bedrooms", models.IntegerField(blank=True, null=True)),
+                ("no_bathrooms", models.IntegerField(blank=True, null=True)),
+                ("description", models.TextField(blank=True, null=True)),
+                ("is_furnished", models.BooleanField(default=False)),
+                ("is_semi_furnished", models.BooleanField(default=False)),
+                (
+                    "agent_ID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="units",
+                        to="listings.agent",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Listing',
+            name="Listing",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('rent', models.IntegerField(blank=True, null=True)),
-                ('deposit_amount', models.IntegerField(blank=True, null=True)),
-                ('available_date', models.DateField(blank=True, null=True)),
-                ('publish_date', models.DateField(blank=True, null=True)),
-                ('closing_date', models.DateField(blank=True, null=True)),
-                ('lease_term', models.IntegerField(blank=True, null=True)),
-                ('is_listing_verified', models.BooleanField(default=False)),
-                ('unit_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='Listings', to='listings.unit')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("rent", models.IntegerField(blank=True, null=True)),
+                ("deposit_amount", models.IntegerField(blank=True, null=True)),
+                ("available_date", models.DateField(blank=True, null=True)),
+                ("publish_date", models.DateField(blank=True, null=True)),
+                ("closing_date", models.DateField(blank=True, null=True)),
+                ("lease_term", models.IntegerField(blank=True, null=True)),
+                ("is_listing_verified", models.BooleanField(default=False)),
+                (
+                    "unit_ID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="Listings",
+                        to="listings.unit",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Images',
+            name="Images",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('image_url', models.CharField(max_length=200)),
-                ('unit_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='listings.unit')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("image_url", models.CharField(max_length=200)),
+                (
+                    "unit_ID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="images",
+                        to="listings.unit",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.AddConstraint(
-            model_name='unit',
-            constraint=models.CheckConstraint(condition=models.Q(('is_furnished', True), ('is_semi_furnished', True), _negated=True), name='TT not allowed'),
+            model_name="unit",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("is_furnished", True), ("is_semi_furnished", True), _negated=True
+                ),
+                name="TT not allowed",
+            ),
         ),
     ]

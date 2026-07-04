@@ -1,4 +1,5 @@
 """chat/permissions/__init__.py"""
+
 from .chat_permissions import (
     IsConversationParticipant,
     IsMessageSender,

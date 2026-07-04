@@ -10,6 +10,7 @@ Design (Repository Pattern):
   - Idempotency: create_if_not_exists() prevents duplicate notifications
     when Kafka delivers the same event twice (at-least-once guarantee)
 """
+
 import logging
 import uuid
 from typing import Optional, List, Tuple
@@ -53,7 +54,9 @@ class NotificationRepository:
                 "source_service": source_service,
             }
             if source_event_id:
-                notification, created = Notification.objects.using("notification").get_or_create(
+                notification, created = Notification.objects.using(
+                    "notification"
+                ).get_or_create(
                     source_event_id=uuid.UUID(str(source_event_id)),
                     defaults=create_kwargs,
                 )
@@ -65,10 +68,14 @@ class NotificationRepository:
                     return None
                 return notification
             else:
-                return Notification.objects.using("notification").create(**create_kwargs)
+                return Notification.objects.using("notification").create(
+                    **create_kwargs
+                )
 
         except IntegrityError as exc:
-            logger.warning("Notification creation IntegrityError (likely duplicate): %s", exc)
+            logger.warning(
+                "Notification creation IntegrityError (likely duplicate): %s", exc
+            )
             return None
         except Exception as exc:
             logger.error("Failed to create notification: %s", exc)
@@ -102,11 +109,15 @@ class NotificationRepository:
     @staticmethod
     def get_unread_count(user_id: str) -> int:
         """Get count of unread, non-archived notifications for a user."""
-        return Notification.objects.using("notification").filter(
-            recipient_id=user_id,
-            is_read=False,
-            is_archived=False,
-        ).count()
+        return (
+            Notification.objects.using("notification")
+            .filter(
+                recipient_id=user_id,
+                is_read=False,
+                is_archived=False,
+            )
+            .count()
+        )
 
     @staticmethod
     def mark_as_read(notification_id: str, user_id: str) -> Optional[Notification]:
@@ -119,7 +130,9 @@ class NotificationRepository:
             if not notification.is_read:
                 notification.is_read = True
                 notification.read_at = timezone.now()
-                notification.save(using="notification", update_fields=["is_read", "read_at"])
+                notification.save(
+                    using="notification", update_fields=["is_read", "read_at"]
+                )
             return notification
         except Notification.DoesNotExist:
             return None
@@ -127,10 +140,14 @@ class NotificationRepository:
     @staticmethod
     def mark_all_as_read(user_id: str) -> int:
         """Mark all unread notifications as read for a user. Returns count updated."""
-        return Notification.objects.using("notification").filter(
-            recipient_id=user_id,
-            is_read=False,
-        ).update(is_read=True, read_at=timezone.now())
+        return (
+            Notification.objects.using("notification")
+            .filter(
+                recipient_id=user_id,
+                is_read=False,
+            )
+            .update(is_read=True, read_at=timezone.now())
+        )
 
     @staticmethod
     def archive(notification_id: str, user_id: str) -> Optional[Notification]:
@@ -142,7 +159,9 @@ class NotificationRepository:
             )
             notification.is_archived = True
             notification.archived_at = timezone.now()
-            notification.save(using="notification", update_fields=["is_archived", "archived_at"])
+            notification.save(
+                using="notification", update_fields=["is_archived", "archived_at"]
+            )
             return notification
         except Notification.DoesNotExist:
             return None
@@ -150,10 +169,14 @@ class NotificationRepository:
     @staticmethod
     def delete(notification_id: str, user_id: str) -> bool:
         """Hard delete a notification. Enforces recipient ownership. Returns True if deleted."""
-        deleted, _ = Notification.objects.using("notification").filter(
-            id=notification_id,
-            recipient_id=user_id,
-        ).delete()
+        deleted, _ = (
+            Notification.objects.using("notification")
+            .filter(
+                id=notification_id,
+                recipient_id=user_id,
+            )
+            .delete()
+        )
         return deleted > 0
 
     @staticmethod
@@ -186,7 +209,9 @@ class PreferenceRepository:
     def update(user_id: str, **kwargs) -> Optional[NotificationPreference]:
         """Update notification preferences for a user."""
         try:
-            pref = NotificationPreference.objects.using("notification").get(user_id=user_id)
+            pref = NotificationPreference.objects.using("notification").get(
+                user_id=user_id
+            )
             for key, value in kwargs.items():
                 if hasattr(pref, key):
                     setattr(pref, key, value)

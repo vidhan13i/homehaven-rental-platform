@@ -14,6 +14,7 @@ class ReviewConsumer(BaseKafkaConsumer):
     Consumes Reviews Service events.
     Topic: reviews.review.created
     """
+
     def __init__(self, group_id: str):
         super().__init__(
             topics=[Topics.REVIEWS_REVIEW_CREATED],
@@ -35,16 +36,18 @@ class ReviewConsumer(BaseKafkaConsumer):
             message = f"A new review was left for a building you manage: {review_title}"
 
             # Ideally, we should notify the owner of the building.
-            # But the payload might only have building_id, so we would either 
+            # But the payload might only have building_id, so we would either
             # 1. Have building_service listen to this and then notify
             # 2. Assume payload includes the owner_id (we need to make sure the producer adds it, or we fetch it here)
             # For simplicity, if we don't have the recipient, we log a warning.
-            
+
             # TODO: Modify the producer in reviews_service to include owner_id, or fetch it.
             # We will use a placeholder or check if owner_id is in payload.
             owner_id = payload.get("owner_id")
             if not owner_id:
-                logger.warning("No owner_id in review payload, cannot send notification.")
+                logger.warning(
+                    "No owner_id in review payload, cannot send notification."
+                )
                 return
 
             NotificationService.create_from_event(
@@ -52,7 +55,10 @@ class ReviewConsumer(BaseKafkaConsumer):
                 notification_type=NotificationType.REVIEW,
                 title=title,
                 message=message,
-                payload={"building_id": building_id, "review_id": payload.get("review_id")},
+                payload={
+                    "building_id": building_id,
+                    "review_id": payload.get("review_id"),
+                },
                 source_event_id=event.get("event_id"),
                 source_service=event.get("source_service"),
             )

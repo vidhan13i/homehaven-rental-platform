@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('building', '0001_initial'),
+        ("building", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='building',
-            name='Pin_code',
+            model_name="building",
+            name="Pin_code",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='avg_rating',
+            model_name="building",
+            name="avg_rating",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='built_year',
+            model_name="building",
+            name="built_year",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='latitude',
+            model_name="building",
+            name="latitude",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='longitude',
+            model_name="building",
+            name="longitude",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='no_of_floors',
+            model_name="building",
+            name="no_of_floors",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='no_of_units',
+            model_name="building",
+            name="no_of_units",
             field=models.IntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='building',
-            name='review_count',
+            model_name="building",
+            name="review_count",
             field=models.IntegerField(blank=True, null=True),
         ),
     ]

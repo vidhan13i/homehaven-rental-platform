@@ -13,7 +13,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not settings.KAFKA_ENABLED:
-            self.stdout.write(self.style.WARNING("Kafka is disabled in settings. KAFKA_ENABLED=false"))
+            self.stdout.write(
+                self.style.WARNING("Kafka is disabled in settings. KAFKA_ENABLED=false")
+            )
             return
 
         # chat-service has its own group id
@@ -28,7 +30,9 @@ class Command(BaseCommand):
             t = threading.Thread(target=consumer.start, daemon=True)
             threads.append(t)
             t.start()
-            self.stdout.write(self.style.SUCCESS(f"Started {consumer.__class__.__name__} thread."))
+            self.stdout.write(
+                self.style.SUCCESS(f"Started {consumer.__class__.__name__} thread.")
+            )
 
         try:
             for t in threads:

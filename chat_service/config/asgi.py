@@ -36,8 +36,6 @@ application = ProtocolTypeRouter(
         # WebSocket → Django Channels consumer
         # AllowedHostsOriginValidator checks the Origin header.
         # In dev (DEBUG=True), all origins are allowed automatically.
-        "websocket": AllowedHostsOriginValidator(
-            URLRouter(websocket_urlpatterns)
-        ),
+        "websocket": AllowedHostsOriginValidator(URLRouter(websocket_urlpatterns)),
     }
 )

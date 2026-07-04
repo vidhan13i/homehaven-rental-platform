@@ -14,6 +14,7 @@ class ApplicationConsumer(BaseKafkaConsumer):
     Consumes Application Service events.
     Topics: applications.application.created, approved, rejected
     """
+
     def __init__(self, group_id: str):
         super().__init__(
             topics=[

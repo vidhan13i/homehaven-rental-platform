@@ -4,6 +4,7 @@ Celery tasks for profile_service.
 All tasks use @shared_task so they work correctly whether Celery
 is running as a standalone worker or imported in tests.
 """
+
 import logging
 from celery import shared_task
 from django.core.mail import send_mail
@@ -15,8 +16,8 @@ logger = logging.getLogger(__name__)
 @shared_task(
     bind=True,
     max_retries=3,
-    default_retry_delay=60,   # retry after 60s on failure
-    name='profiles_app.tasks.send_otp_email',
+    default_retry_delay=60,  # retry after 60s on failure
+    name="profiles_app.tasks.send_otp_email",
 )
 def send_otp_email(self, email: str, otp: str) -> dict:
     """
@@ -33,16 +34,16 @@ def send_otp_email(self, email: str, otp: str) -> dict:
     Returns:
         dict with 'status' key.
     """
-    subject = 'Your Haven verification code'
+    subject = "Your Haven verification code"
     message = (
-        f'Hi,\n\n'
-        f'Your one-time verification code is:\n\n'
-        f'    {otp}\n\n'
-        f'This code expires in 5 minutes. Do not share it with anyone.\n\n'
-        f'If you did not request this, you can safely ignore this email.\n\n'
-        f'— Haven Rentals'
+        f"Hi,\n\n"
+        f"Your one-time verification code is:\n\n"
+        f"    {otp}\n\n"
+        f"This code expires in 5 minutes. Do not share it with anyone.\n\n"
+        f"If you did not request this, you can safely ignore this email.\n\n"
+        f"— Haven Rentals"
     )
-    html_message = f'''
+    html_message = f"""
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 max-width: 480px; margin: 0 auto; padding: 40px 20px;">
         <div style="background: #111418; border-radius: 16px; padding: 40px; text-align: center;">
@@ -60,7 +61,7 @@ def send_otp_email(self, email: str, otp: str) -> dict:
             </p>
         </div>
     </div>
-    '''
+    """
     try:
         send_mail(
             subject=subject,
@@ -71,10 +72,10 @@ def send_otp_email(self, email: str, otp: str) -> dict:
             fail_silently=False,
         )
         # IMPORTANT: never log the OTP value itself in production
-        logger.info('OTP email dispatched to %s', email)
-        return {'status': 'sent', 'email': email}
+        logger.info("OTP email dispatched to %s", email)
+        return {"status": "sent", "email": email}
 
     except Exception as exc:
-        logger.error('Failed to send OTP email to %s: %s', email, type(exc).__name__)
+        logger.error("Failed to send OTP email to %s: %s", email, type(exc).__name__)
         # Retry with exponential backoff
         raise self.retry(exc=exc)

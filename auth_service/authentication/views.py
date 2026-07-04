@@ -5,7 +5,12 @@ from rest_framework import status, generics, exceptions
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiExample,
+    OpenApiResponse,
+)
 from .serializers import RegisterSerializer
 from shared_lib.resilience import make_resilient_request
 from shared_lib.kafka.producer import KafkaEventProducer
@@ -15,10 +20,11 @@ from shared_lib.kafka.topics import Topics
 logger = logging.getLogger("auth.views")
 _kafka_producer = KafkaEventProducer()
 
+
 class ServiceUnavailable(exceptions.APIException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    default_detail = 'Profile service temporarily unavailable'
-    default_code = 'service_unavailable'
+    default_detail = "Profile service temporarily unavailable"
+    default_code = "service_unavailable"
 
 
 @extend_schema_view(
@@ -27,9 +33,15 @@ class ServiceUnavailable(exceptions.APIException):
         description="Creates a new user account, initializes their profile in the Profile Service, and triggers an OTP verification email.",
         tags=["Authentication"],
         responses={
-            201: OpenApiResponse(description="OTP sent successfully. Please verify your email."),
-            400: OpenApiResponse(description="Bad Request - Invalid payload or Profile creation failed"),
-            503: OpenApiResponse(description="Service Unavailable - Profile or OTP service down")
+            201: OpenApiResponse(
+                description="OTP sent successfully. Please verify your email."
+            ),
+            400: OpenApiResponse(
+                description="Bad Request - Invalid payload or Profile creation failed"
+            ),
+            503: OpenApiResponse(
+                description="Service Unavailable - Profile or OTP service down"
+            ),
         },
         examples=[
             OpenApiExample(
@@ -41,11 +53,11 @@ class ServiceUnavailable(exceptions.APIException):
                     "password": "SecurePassword123!",
                     "email": "john@example.com",
                     "first_name": "John",
-                    "last_name": "Doe"
+                    "last_name": "Doe",
                 },
-                request_only=True
+                request_only=True,
             )
-        ]
+        ],
     )
 )
 class RegisterView(generics.CreateAPIView):
@@ -66,29 +78,31 @@ class RegisterView(generics.CreateAPIView):
                 "last_name": user.last_name,
                 "email": user.email,
                 "DOB": "2000-01-01",  # default DOB required by profile service
-                "gender": "P",        # default choices ('P' for Prefer Not to Say)
-                "is_email_verified": False
+                "gender": "P",  # default choices ('P' for Prefer Not to Say)
+                "is_email_verified": False,
             }
             resp = make_resilient_request(
                 url,
-                method='POST',
-                service_name='profile_service',
+                method="POST",
+                service_name="profile_service",
                 max_attempts=2,
                 timeout=2,
                 json=profile_payload,
-                headers={"Host": "localhost"}
+                headers={"Host": "localhost"},
             )
             if resp.status_code not in [200, 201]:
                 user.delete()
                 return Response(
-                    {"error": f"Failed to create profile. Registration rolled back. Detail: {resp.text}"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {
+                        "error": f"Failed to create profile. Registration rolled back. Detail: {resp.text}"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
         except requests.exceptions.RequestException:
             user.delete()
             return Response(
                 {"message": "Profile service temporarily unavailable"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         # Step 2: Request OTP automatically
@@ -96,24 +110,25 @@ class RegisterView(generics.CreateAPIView):
             otp_url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/otp/request_otp/"
             make_resilient_request(
                 otp_url,
-                method='POST',
-                service_name='profile_service',
+                method="POST",
+                service_name="profile_service",
                 max_attempts=2,
                 timeout=2,
                 json={"email": user.email},
-                headers={"Host": "localhost"}
+                headers={"Host": "localhost"},
             )
         except requests.exceptions.RequestException:
             user.delete()
             return Response(
                 {"message": "OTP service temporarily unavailable"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         self._publish_user_registered(user)
-        return Response({
-            "message": "OTP sent successfully. Please verify your email."
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {"message": "OTP sent successfully. Please verify your email."},
+            status=status.HTTP_201_CREATED,
+        )
 
     def _publish_user_registered(self, user) -> None:
         """Publish UserRegistered domain event to Kafka (fire-and-forget)."""
@@ -145,8 +160,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         # Custom claims
-        token['username'] = user.username
-        token['email'] = user.email
+        token["username"] = user.username
+        token["email"] = user.email
         return token
 
     def validate(self, attrs):
@@ -159,20 +174,26 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/profiles/by-email/?email={email}"
             resp = make_resilient_request(
                 url,
-                method='GET',
-                service_name='profile_service',
+                method="GET",
+                service_name="profile_service",
                 max_attempts=2,
                 timeout=2,
-                headers={"Host": "localhost"}
+                headers={"Host": "localhost"},
             )
             if resp.status_code == 200:
                 profile_data = resp.json()
-                if not profile_data.get('is_email_verified', False):
-                    raise exceptions.ValidationError("Email not verified. Please verify your OTP.")
+                if not profile_data.get("is_email_verified", False):
+                    raise exceptions.ValidationError(
+                        "Email not verified. Please verify your OTP."
+                    )
             elif resp.status_code == 404:
-                raise exceptions.ValidationError("Profile not found. Registration might be incomplete.")
+                raise exceptions.ValidationError(
+                    "Profile not found. Registration might be incomplete."
+                )
             else:
-                raise exceptions.ValidationError("Unable to verify profile verification status.")
+                raise exceptions.ValidationError(
+                    "Unable to verify profile verification status."
+                )
         except requests.exceptions.RequestException:
             raise ServiceUnavailable()
 
@@ -187,19 +208,18 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         responses={
             200: OpenApiResponse(description="Tokens returned successfully"),
             400: OpenApiResponse(description="Email not verified or Profile not found"),
-            401: OpenApiResponse(description="No active account found with the given credentials"),
-            503: OpenApiResponse(description="Profile service temporarily unavailable")
+            401: OpenApiResponse(
+                description="No active account found with the given credentials"
+            ),
+            503: OpenApiResponse(description="Profile service temporarily unavailable"),
         },
         examples=[
             OpenApiExample(
                 "Login Payload",
-                value={
-                    "username": "johndoe",
-                    "password": "SecurePassword123!"
-                },
-                request_only=True
+                value={"username": "johndoe", "password": "SecurePassword123!"},
+                request_only=True,
             )
-        ]
+        ],
     )
 )
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -211,5 +231,5 @@ class MyTokenObtainPairView(TokenObtainPairView):
         except ServiceUnavailable:
             return Response(
                 {"message": "Profile service temporarily unavailable"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )

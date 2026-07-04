@@ -12,6 +12,7 @@ Design:
   - All permission checks go through this service, not scattered in consumers/views.
   - Async version provided for the WebSocket consumer (can't block event loop).
 """
+
 import logging
 from typing import Optional
 
@@ -27,9 +28,7 @@ class PermissionService:
     """Business logic for conversation access control."""
 
     @staticmethod
-    def can_access_conversation(
-        user_id: str, conversation: Conversation
-    ) -> bool:
+    def can_access_conversation(user_id: str, conversation: Conversation) -> bool:
         """
         Return True if user_id is allowed to read/write in this conversation.
 
@@ -84,9 +83,9 @@ class PermissionService:
         Returns (allowed, conversation) or (False, None).
         Wraps the sync ORM call with sync_to_async.
         """
-        conversation = await sync_to_async(
-            ConversationRepository.get_by_id
-        )(conversation_id)
+        conversation = await sync_to_async(ConversationRepository.get_by_id)(
+            conversation_id
+        )
 
         if conversation is None:
             logger.warning(

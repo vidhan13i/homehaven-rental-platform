@@ -9,6 +9,7 @@ class DummyUser:
     A lightweight, fake user object to satisfy DRF's request.user requirement
     without querying a real User model (since notification_service has none).
     """
+
     def __init__(self, user_id):
         self.id = user_id
         self.is_authenticated = True
@@ -29,15 +30,11 @@ class TrustedJWTAuthentication(BaseAuthentication):
         token = auth_header.split(" ")[1]
 
         try:
-            decoded = jwt.decode(
-                token,
-                settings.JWT_SECRET_KEY,
-                algorithms=["HS256"]
-            )
+            decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
             user_id = decoded.get("user_id")
             if not user_id:
                 raise AuthenticationFailed("Invalid token payload: missing user_id")
-            
+
             return (DummyUser(user_id), token)
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed("Token has expired")

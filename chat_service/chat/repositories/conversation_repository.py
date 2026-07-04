@@ -9,6 +9,7 @@ Repository Pattern benefits:
   - Testable in isolation with a mock
   - Services remain DB-agnostic
 """
+
 import logging
 import uuid
 from typing import Optional
@@ -44,9 +45,8 @@ class ConversationRepository:
             # Django ORM: owner_id=user_id OR renter_id=user_id
         )
         from django.db.models import Q
-        qs = Conversation.objects.filter(
-            Q(owner_id=user_id) | Q(renter_id=user_id)
-        )
+
+        qs = Conversation.objects.filter(Q(owner_id=user_id) | Q(renter_id=user_id))
         if not include_archived:
             qs = qs.filter(is_archived=False)
         return qs.order_by("-is_pinned", "-last_message_at", "-created_at")
@@ -87,9 +87,7 @@ class ConversationRepository:
             raise
 
     @staticmethod
-    def update_last_message(
-        conversation_id: str, content: str
-    ) -> None:
+    def update_last_message(conversation_id: str, content: str) -> None:
         """Denormalize the last message preview into the conversation row."""
         Conversation.objects.filter(id=conversation_id).update(
             last_message=content[:200],  # Truncate for preview

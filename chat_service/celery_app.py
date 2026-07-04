@@ -6,6 +6,7 @@ Import path used by the worker command:
 
 Mirrors the exact pattern from profile_service/celery_app.py.
 """
+
 import os
 from celery import Celery
 

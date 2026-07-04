@@ -3,6 +3,7 @@ ASGI config for notification_service.
 Routes HTTP → Django REST Framework
 Routes WebSocket /ws/notifications/ → NotificationConsumer
 """
+
 import os
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
@@ -13,13 +14,13 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django_asgi_app = get_asgi_application()
 
 from notification.websocket.routing import websocket_urlpatterns  # noqa: E402
-from notification.websocket.middleware import JWTAuthMiddleware   # noqa: E402
+from notification.websocket.middleware import JWTAuthMiddleware  # noqa: E402
 
-application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-    "websocket": AllowedHostsOriginValidator(
-        JWTAuthMiddleware(
-            URLRouter(websocket_urlpatterns)
-        )
-    ),
-})
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": AllowedHostsOriginValidator(
+            JWTAuthMiddleware(URLRouter(websocket_urlpatterns))
+        ),
+    }
+)

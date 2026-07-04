@@ -7,6 +7,7 @@ Mirrors the BaseModel pattern used in:
 
 Every model in the chat service inherits from ChatBaseModel.
 """
+
 import uuid
 from django.db import models
 

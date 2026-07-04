@@ -19,6 +19,7 @@ Why in the service layer (not consumer)?
   - Rate limiting is business logic.
   - Services call this utility; consumers call services.
 """
+
 import time
 import uuid
 import logging

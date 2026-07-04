@@ -22,25 +22,62 @@ from profiles_app.api.serializers import (
 )
 from profiles_app.tasks import send_otp_email
 from profiles_app.throttles import OTPRequestThrottle, OTPVerifyThrottle
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiResponse,
+    OpenApiParameter,
+)
 
 
 @extend_schema_view(
     list=extend_schema(summary="List all Profiles", tags=["Profiles"]),
     retrieve=extend_schema(summary="Retrieve a Profile", tags=["Profiles"]),
-    create=extend_schema(summary="Create a Profile", tags=["Profiles"], responses={201: ProfileSerializer}),
+    create=extend_schema(
+        summary="Create a Profile",
+        tags=["Profiles"],
+        responses={201: ProfileSerializer},
+    ),
     update=extend_schema(summary="Update a Profile", tags=["Profiles"]),
-    partial_update=extend_schema(summary="Partially Update a Profile", tags=["Profiles"]),
+    partial_update=extend_schema(
+        summary="Partially Update a Profile", tags=["Profiles"]
+    ),
     destroy=extend_schema(summary="Delete a Profile", tags=["Profiles"]),
     by_email=extend_schema(
         summary="Lookup by Email",
         tags=["Profiles"],
-        parameters=[OpenApiParameter(name="email", type=str, location=OpenApiParameter.QUERY, required=True, description="Email of the user")],
-        responses={200: ProfileSerializer, 400: OpenApiResponse(description="Email parameter missing"), 404: OpenApiResponse(description="Profile not found")}
+        parameters=[
+            OpenApiParameter(
+                name="email",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=True,
+                description="Email of the user",
+            )
+        ],
+        responses={
+            200: ProfileSerializer,
+            400: OpenApiResponse(description="Email parameter missing"),
+            404: OpenApiResponse(description="Profile not found"),
+        },
     ),
-    reviews=extend_schema(summary="Get Reviews by Profile", tags=["Profiles (External)"], description="Fetches reviews written by this profile from the Reviews Service.", responses={200: OpenApiResponse(description="List of reviews")}),
-    applications=extend_schema(summary="Get Applications by Profile", tags=["Profiles (External)"], description="Fetches rental applications by this profile from the Application Service.", responses={200: OpenApiResponse(description="List of applications")}),
-    stats=extend_schema(summary="Profile Statistics", tags=["Profiles"], responses={200: OpenApiResponse(description="Aggregate stats")})
+    reviews=extend_schema(
+        summary="Get Reviews by Profile",
+        tags=["Profiles (External)"],
+        description="Fetches reviews written by this profile from the Reviews Service.",
+        responses={200: OpenApiResponse(description="List of reviews")},
+    ),
+    applications=extend_schema(
+        summary="Get Applications by Profile",
+        tags=["Profiles (External)"],
+        description="Fetches rental applications by this profile from the Application Service.",
+        responses={200: OpenApiResponse(description="List of applications")},
+    ),
+    stats=extend_schema(
+        summary="Profile Statistics",
+        tags=["Profiles"],
+        responses={200: OpenApiResponse(description="Aggregate stats")},
+    ),
 )
 class ProfileViewSet(viewsets.ModelViewSet):
     """
@@ -54,38 +91,47 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['is_email_verified', 'gender']
-    search_fields = ['first_name', 'last_name', 'email', 'userID']
-    ordering_fields = ['created_at', 'first_name', 'last_name']
-    ordering = ['-created_at']
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ["is_email_verified", "gender"]
+    search_fields = ["first_name", "last_name", "email", "userID"]
+    ordering_fields = ["created_at", "first_name", "last_name"]
+    ordering = ["-created_at"]
 
     def get_permissions(self):
-        if self.action in ['create', 'by_email']:
+        if self.action in ["create", "by_email"]:
             return [AllowAny()]
         return [IsAuthenticated()]
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return ProfileListSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
+        elif self.action in ["create", "update", "partial_update"]:
             return ProfileCreateUpdateSerializer
         return ProfileSerializer
 
-    @action(detail=False, methods=['get'], url_path='by-email')
+    @action(detail=False, methods=["get"], url_path="by-email")
     def by_email(self, request):
         """Lookup a profile by email address."""
-        email = request.query_params.get('email')
+        email = request.query_params.get("email")
         if not email:
-            return Response({'error': 'email query param is required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "email query param is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
             profile = Profile.objects.get(email=email)
             serializer = ProfileSerializer(profile)
             return Response(serializer.data)
         except Profile.DoesNotExist:
-            return Response({'error': 'Profile not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def reviews(self, request, pk=None):
         """
         INTER-SERVICE CALL → reviews_service
@@ -96,8 +142,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
             url = f"{settings.REVIEWS_SERVICE_URL}/api/reviews/reviews/?profile_id={profile.id}"
             resp = make_resilient_request(
                 url,
-                method='GET',
-                service_name='reviews_service',
+                method="GET",
+                service_name="reviews_service",
                 max_attempts=3,
                 timeout=2,
             )
@@ -105,10 +151,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
         except requests.exceptions.RequestException:
             return Response(
                 {"message": "Reviews service temporarily unavailable"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def applications(self, request, pk=None):
         """
         INTER-SERVICE CALL → application_service
@@ -119,8 +165,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
             url = f"{settings.LISTINGS_SERVICE_URL}/api/applications/applications/?profile_id={profile.id}"
             resp = make_resilient_request(
                 url,
-                method='GET',
-                service_name='application_service',
+                method="GET",
+                service_name="application_service",
                 max_attempts=3,
                 timeout=2,
             )
@@ -128,21 +174,21 @@ class ProfileViewSet(viewsets.ModelViewSet):
         except requests.exceptions.RequestException:
             return Response(
                 {"message": "Application service temporarily unavailable"},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def stats(self, request):
         """Aggregate profile statistics."""
         queryset = self.get_queryset()
         stats = {
-            'total_profiles': queryset.count(),
-            'verified_emails': queryset.filter(is_email_verified=True).count(),
-            'gender_breakdown': {
-                'male': queryset.filter(gender='M').count(),
-                'female': queryset.filter(gender='F').count(),
-                'other': queryset.filter(gender='O').count(),
-                'prefer_not': queryset.filter(gender='P').count(),
+            "total_profiles": queryset.count(),
+            "verified_emails": queryset.filter(is_email_verified=True).count(),
+            "gender_breakdown": {
+                "male": queryset.filter(gender="M").count(),
+                "female": queryset.filter(gender="F").count(),
+                "other": queryset.filter(gender="O").count(),
+                "prefer_not": queryset.filter(gender="P").count(),
             },
         }
         return Response(stats)
@@ -153,14 +199,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
         summary="Request Email OTP",
         tags=["OTP Verification"],
         description="Generate a secure 6-digit OTP and send via email.",
-        responses={200: OpenApiResponse(description="OTP sent successfully")}
+        responses={200: OpenApiResponse(description="OTP sent successfully")},
     ),
     verify_otp=extend_schema(
         summary="Verify Email OTP",
         tags=["OTP Verification"],
         description="Verify an OTP and mark the profile's email as verified.",
-        responses={200: OpenApiResponse(description="Email verified successfully"), 400: OpenApiResponse(description="Invalid or expired OTP")}
-    )
+        responses={
+            200: OpenApiResponse(description="Email verified successfully"),
+            400: OpenApiResponse(description="Invalid or expired OTP"),
+        },
+    ),
 )
 class EmailOTPViewSet(viewsets.GenericViewSet):
     """
@@ -170,17 +219,18 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
         POST /api/profiles/otp/request_otp/  → generate and store an OTP in Redis, dispatch email Celery task
         POST /api/profiles/otp/verify_otp/   → verify an OTP from Redis and mark email as verified
     """
+
     serializer_class = EmailOTPRequestSerializer
     permission_classes = [AllowAny]
 
     def get_throttles(self):
-        if self.action == 'request_otp':
+        if self.action == "request_otp":
             return [OTPRequestThrottle()]
-        elif self.action == 'verify_otp':
+        elif self.action == "verify_otp":
             return [OTPVerifyThrottle()]
         return super().get_throttles()
 
-    @action(detail=False, methods=['post'], serializer_class=EmailOTPRequestSerializer)
+    @action(detail=False, methods=["post"], serializer_class=EmailOTPRequestSerializer)
     def request_otp(self, request):
         """
         Generate a secure 6-digit OTP, hash it, store in Redis for 5 minutes,
@@ -188,10 +238,10 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email'].strip().lower()
+        email = serializer.validated_data["email"].strip().lower()
 
         # Generate secure 6-digit OTP
-        otp = ''.join(random.choices(string.digits, k=6))
+        otp = "".join(random.choices(string.digits, k=6))
         otp_hash = make_password(otp)
 
         # Store hash in Redis with a 5-minute (300 seconds) expiration
@@ -201,18 +251,19 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
         # Trigger Celery task to send OTP email asynchronously
         send_otp_email.delay(email, otp)
 
-        return Response({
-            'message': 'OTP sent successfully. Please verify your email.'
-        }, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "OTP sent successfully. Please verify your email."},
+            status=status.HTTP_200_OK,
+        )
 
-    @action(detail=False, methods=['post'], serializer_class=EmailOTPVerifySerializer)
+    @action(detail=False, methods=["post"], serializer_class=EmailOTPVerifySerializer)
     def verify_otp(self, request):
         """Verify an OTP from Redis and mark the profile's email as verified."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email'].strip().lower()
-        otp = serializer.validated_data['otp'].strip()
+        email = serializer.validated_data["email"].strip().lower()
+        otp = serializer.validated_data["otp"].strip()
 
         redis_key = f"{settings.OTP_REDIS_KEY_PREFIX}:{email}"
         attempts_key = f"otp_attempts:{email}"
@@ -224,8 +275,8 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
             cache.delete(redis_key)
             cache.delete(attempts_key)
             return Response(
-                {'message': 'Invalid or expired OTP'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Invalid or expired OTP"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         stored_hash = cache.get(redis_key)
@@ -238,8 +289,8 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
                 cache.delete(redis_key)
                 cache.delete(attempts_key)
             return Response(
-                {'message': 'Invalid or expired OTP'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Invalid or expired OTP"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Mark the profile's email as verified
@@ -254,4 +305,6 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
         cache.delete(redis_key)
         cache.delete(attempts_key)
 
-        return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
+        return Response(
+            {"message": "Email verified successfully"}, status=status.HTTP_200_OK
+        )

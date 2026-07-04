@@ -14,6 +14,7 @@ class UserConsumer(BaseKafkaConsumer):
     Consumes Auth Service events.
     Topic: auth.user.registered
     """
+
     def __init__(self, group_id: str):
         super().__init__(
             topics=[Topics.AUTH_USER_REGISTERED],

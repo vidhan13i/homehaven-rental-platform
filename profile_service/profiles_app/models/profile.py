@@ -16,10 +16,10 @@ class Profile(BaseModel):
     # That would tell Django to create a separate "User_Gender" database table — wrong!
     # models.TextChoices is Django's modern, correct way to define choices for a CharField.
     class GenderChoices(models.TextChoices):
-        MALE = 'M', 'Male'
-        FEMALE = 'F', 'Female'
-        OTHER = 'O', 'Other'
-        PREFER_NOT = 'P', 'Prefer not to say'
+        MALE = "M", "Male"
+        FEMALE = "F", "Female"
+        OTHER = "O", "Other"
+        PREFER_NOT = "P", "Prefer not to say"
 
     gender = models.CharField(
         max_length=1,

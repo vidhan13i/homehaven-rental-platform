@@ -5,6 +5,7 @@ Business logic for all message operations.
 Called by both the WebSocket consumer and REST API views.
 Coordinates: validation → rate limiting → sanitization → repository → notifications.
 """
+
 import logging
 from typing import Optional
 
@@ -56,7 +57,9 @@ class MessageService:
         if not allowed:
             logger.warning(
                 "Message send denied for user %s in conversation %s: %s",
-                sender_id, conversation.id, reason,
+                sender_id,
+                conversation.id,
+                reason,
             )
             return None, reason
 
@@ -88,19 +91,20 @@ class MessageService:
         except Exception as exc:
             logger.error(
                 "Failed to persist message in conversation %s: %s",
-                conversation.id, str(exc),
+                conversation.id,
+                str(exc),
             )
             return None, "Failed to save message. Please try again."
 
         # 5. Update denormalized last_message on conversation
         preview = content[:200] if content else f"[{message_type}]"
-        ConversationRepository.update_last_message(
-            str(conversation.id), preview
-        )
+        ConversationRepository.update_last_message(str(conversation.id), preview)
 
         logger.info(
             "Message %s sent in conversation %s by user %s",
-            message.id, conversation.id, sender_id,
+            message.id,
+            conversation.id,
+            sender_id,
         )
 
         return message, None
@@ -131,9 +135,7 @@ class MessageService:
         return updated, None
 
     @staticmethod
-    def delete_message(
-        message_id: str, user_id: str
-    ) -> tuple[bool, Optional[str]]:
+    def delete_message(message_id: str, user_id: str) -> tuple[bool, Optional[str]]:
         """Soft-delete a message. Only the sender can delete."""
         message = MessageRepository.get_by_id(message_id)
         if not message:
@@ -156,7 +158,9 @@ class MessageService:
         )
         logger.debug(
             "Marked %d messages as seen in conversation %s by user %s",
-            count, conversation_id, user_id,
+            count,
+            conversation_id,
+            user_id,
         )
         return count
 
@@ -191,9 +195,7 @@ class MessageService:
         return updated, None
 
     @staticmethod
-    def search_messages(
-        conversation_id: str, query: str, user_id: str
-    ):
+    def search_messages(conversation_id: str, query: str, user_id: str):
         """Search messages in a conversation. User must be a participant."""
         conversation = ConversationRepository.get_by_id(conversation_id)
         if not conversation or not conversation.is_participant(user_id):
@@ -224,6 +226,4 @@ class MessageService:
     @staticmethod
     async def async_mark_seen(conversation_id: str, user_id: str) -> int:
         """Async: mark all messages seen in conversation."""
-        return await sync_to_async(MessageService.mark_seen)(
-            conversation_id, user_id
-        )
+        return await sync_to_async(MessageService.mark_seen)(conversation_id, user_id)

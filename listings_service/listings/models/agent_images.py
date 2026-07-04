@@ -3,6 +3,7 @@ from django.db import models
 
 from ..common.models import BaseModel
 
+
 class AgentImages(BaseModel):
     agent_ID = models.ForeignKey(
         "Agent",

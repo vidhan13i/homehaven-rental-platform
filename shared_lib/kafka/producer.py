@@ -21,6 +21,7 @@ Usage:
     event = build_event("UserRegistered", user_id, "auth_service", {"email": email})
     producer.publish(Topics.AUTH_USER_REGISTERED, event, key=str(user_id))
 """
+
 import json
 import logging
 import os
@@ -31,6 +32,7 @@ logger = logging.getLogger("kafka.producer")
 # Lazy import so services that don't use Kafka don't fail on import
 try:
     from confluent_kafka import Producer, KafkaException
+
     KAFKA_AVAILABLE = True
 except ImportError:
     KAFKA_AVAILABLE = False
@@ -107,14 +109,18 @@ class KafkaEventProducer:
         if err:
             logger.error(
                 "Kafka delivery FAILED | topic=%s | partition=%s | error=%s",
-                msg.topic(), msg.partition(), err
+                msg.topic(),
+                msg.partition(),
+                err,
             )
             if on_failure:
                 on_failure(err, msg)
         else:
             logger.debug(
                 "Kafka delivery SUCCESS | topic=%s | partition=%s | offset=%s",
-                msg.topic(), msg.partition(), msg.offset()
+                msg.topic(),
+                msg.partition(),
+                msg.offset(),
             )
             if on_success:
                 on_success(msg)
@@ -166,7 +172,8 @@ class KafkaEventProducer:
             if remaining > 0:
                 logger.warning(
                     "Kafka flush timeout: %d messages undelivered for topic=%s",
-                    remaining, topic
+                    remaining,
+                    topic,
                 )
                 return False
 
@@ -182,13 +189,14 @@ class KafkaEventProducer:
         except (KafkaException, BufferError) as exc:
             logger.error(
                 "Failed to publish event | topic=%s | event_type=%s | error=%s",
-                topic, event.get("event_type"), exc
+                topic,
+                event.get("event_type"),
+                exc,
             )
             return False
         except Exception as exc:
             logger.error(
-                "Unexpected error publishing event | topic=%s | error=%s",
-                topic, exc
+                "Unexpected error publishing event | topic=%s | error=%s", topic, exc
             )
             return False
 
@@ -207,8 +215,7 @@ class KafkaEventProducer:
         """
         if not self._producer:
             logger.info(
-                "KAFKA_NOOP | topic=%s | event_type=%s",
-                topic, event.get("event_type")
+                "KAFKA_NOOP | topic=%s | event_type=%s", topic, event.get("event_type")
             )
             return
 
@@ -224,9 +231,7 @@ class KafkaEventProducer:
             # Poll for delivery callbacks without blocking
             self._producer.poll(0)
         except (KafkaException, BufferError) as exc:
-            logger.error(
-                "Async publish failed | topic=%s | error=%s", topic, exc
-            )
+            logger.error("Async publish failed | topic=%s | error=%s", topic, exc)
 
     def close(self) -> None:
         """Flush all pending messages and close the producer. Call in shutdown hooks."""

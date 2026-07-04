@@ -14,6 +14,7 @@ class MessageConsumer(BaseKafkaConsumer):
     Consumes Chat Service events.
     Topic: chat.message.sent
     """
+
     def __init__(self, group_id: str):
         super().__init__(
             topics=[Topics.CHAT_MESSAGE_SENT],
@@ -26,12 +27,16 @@ class MessageConsumer(BaseKafkaConsumer):
         recipient_id = payload.get("recipient_id")
 
         if not recipient_id:
-            logger.debug("MessageSent event has no recipient_id (e.g. system message): %s", event)
+            logger.debug(
+                "MessageSent event has no recipient_id (e.g. system message): %s", event
+            )
             return
 
         if event_type == "MessageSent":
             title = "New Message 💬"
-            content_preview = payload.get("content_preview", "You received a new message.")
+            content_preview = payload.get(
+                "content_preview", "You received a new message."
+            )
             conversation_id = payload.get("conversation_id")
 
             NotificationService.create_from_event(

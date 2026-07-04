@@ -5,6 +5,7 @@ Business logic for conversation lifecycle operations.
 Calls ConversationRepository for DB access.
 Calls shared_lib.resilience for inter-service HTTP calls.
 """
+
 import logging
 from typing import Optional
 
@@ -19,6 +20,7 @@ except ImportError:
     # Fallback for local development outside Docker
     def make_resilient_request(url, method="GET", service_name="", **kwargs):
         return requests.request(method, url, **kwargs)
+
 
 logger = logging.getLogger("chat.services.conversation")
 
@@ -69,9 +71,7 @@ class ConversationService:
         return conversation, created
 
     @staticmethod
-    def get_conversation(
-        conversation_id: str, user_id: str
-    ) -> Optional[Conversation]:
+    def get_conversation(conversation_id: str, user_id: str) -> Optional[Conversation]:
         """
         Fetch a conversation, ensuring the user is a participant.
         Returns None if not found or not authorized.
@@ -89,9 +89,7 @@ class ConversationService:
         return conversation
 
     @staticmethod
-    def list_conversations(
-        user_id: str, include_archived: bool = False
-    ) -> list:
+    def list_conversations(user_id: str, include_archived: bool = False) -> list:
         """Return all conversations for a user, ordered by latest activity."""
         return list(
             ConversationRepository.get_for_user(

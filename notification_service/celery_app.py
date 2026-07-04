@@ -4,6 +4,7 @@ Handles:
   - Email delivery tasks (queue: email_delivery)
   - General notification tasks (queue: notifications)
 """
+
 import os
 from celery import Celery
 

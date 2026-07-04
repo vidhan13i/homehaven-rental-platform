@@ -14,6 +14,7 @@ Redis key format:
 A user is considered online if the Redis key exists AND online == "1".
 When the TTL expires (no heartbeat for 35s), the user is automatically offline.
 """
+
 import logging
 from typing import Optional
 

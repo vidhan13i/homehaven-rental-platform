@@ -16,21 +16,37 @@ from building.api.serializers import (
 from building.api.pagination import StandardResultsSetPagination
 from building.api.filters import BuildingFilter
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 #  BUILDING VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse
+from drf_spectacular.utils import (
+    extend_schema_view,
+    extend_schema,
+    OpenApiExample,
+    OpenApiResponse,
+)
+
 
 @extend_schema_view(
     list=extend_schema(summary="List all Buildings", tags=["Buildings"]),
     retrieve=extend_schema(summary="Retrieve a Building", tags=["Buildings"]),
-    create=extend_schema(summary="Create a Building", tags=["Buildings"], responses={201: OpenApiResponse(description="Created")}, examples=[OpenApiExample("Create Building", value={"name": "Empire State"}, request_only=True)]),
+    create=extend_schema(
+        summary="Create a Building",
+        tags=["Buildings"],
+        responses={201: OpenApiResponse(description="Created")},
+        examples=[
+            OpenApiExample(
+                "Create Building", value={"name": "Empire State"}, request_only=True
+            )
+        ],
+    ),
     update=extend_schema(summary="Update a Building", tags=["Buildings"]),
-    partial_update=extend_schema(summary="Partially Update a Building", tags=["Buildings"]),
+    partial_update=extend_schema(
+        summary="Partially Update a Building", tags=["Buildings"]
+    ),
     destroy=extend_schema(summary="Delete a Building", tags=["Buildings"]),
-    upload_images=extend_schema(summary="Upload Building Images", tags=["Buildings"])
+    upload_images=extend_schema(summary="Upload Building Images", tags=["Buildings"]),
 )
 class BuildingViewSet(viewsets.ModelViewSet):
     """
@@ -53,32 +69,51 @@ class BuildingViewSet(viewsets.ModelViewSet):
         POST   /api/buildings/{id}/add_image/   → add image to building
     """
 
-    queryset = Building.objects.prefetch_related('images_set').all()
+    queryset = Building.objects.prefetch_related("images_set").all()
     serializer_class = BuildingSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'stats', 'cities', 'nearby', 'top_rated', 'images']:
+        if self.action in [
+            "list",
+            "retrieve",
+            "stats",
+            "cities",
+            "nearby",
+            "top_rated",
+            "images",
+        ]:
             return [AllowAny()]
         return [IsAuthenticated()]
+
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
     filterset_class = BuildingFilter
-    search_fields = ['name', 'address', 'city', 'state']
-    ordering_fields = ['created_at', 'avg_rating', 'review_count', 'name', 'no_of_floors']
-    ordering = ['-created_at']
+    search_fields = ["name", "address", "city", "state"]
+    ordering_fields = [
+        "created_at",
+        "avg_rating",
+        "review_count",
+        "name",
+        "no_of_floors",
+    ]
+    ordering = ["-created_at"]
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action == "list":
             return BuildingListSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
+        elif self.action in ["create", "update", "partial_update"]:
             return BuildingCreateUpdateSerializer
-        elif self.action in ['nearby', 'top_rated']:
+        elif self.action in ["nearby", "top_rated"]:
             return BuildingNearbySerializer
         return BuildingSerializer
 
     # ── Custom Actions ─────────────────────────────────────────────────────
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def stats(self, request):
         """
         Returns aggregate statistics across all buildings.
@@ -86,39 +121,38 @@ class BuildingViewSet(viewsets.ModelViewSet):
         """
         queryset = self.filter_queryset(self.get_queryset())
         stats = {
-            'total_buildings': queryset.count(),
-            'rera_verified': queryset.filter(is_RERA_verified=True).count(),
-            'average_rating': queryset.aggregate(Avg('avg_rating'))['avg_rating__avg'],
-            'average_floors': queryset.aggregate(Avg('no_of_floors'))['no_of_floors__avg'],
-            'total_units': queryset.aggregate(
-                total=Count('no_of_units')
-            )['total'],
-            'buildings_with_gym': queryset.filter(is_gym=True).count(),
-            'buildings_with_pool': queryset.filter(is_swimming=True).count(),
-            'buildings_with_elevator': queryset.filter(is_elevator=True).count(),
-            'top_cities': list(
-                queryset.values('city')
-                .annotate(count=Count('id'))
-                .order_by('-count')[:10]
+            "total_buildings": queryset.count(),
+            "rera_verified": queryset.filter(is_RERA_verified=True).count(),
+            "average_rating": queryset.aggregate(Avg("avg_rating"))["avg_rating__avg"],
+            "average_floors": queryset.aggregate(Avg("no_of_floors"))[
+                "no_of_floors__avg"
+            ],
+            "total_units": queryset.aggregate(total=Count("no_of_units"))["total"],
+            "buildings_with_gym": queryset.filter(is_gym=True).count(),
+            "buildings_with_pool": queryset.filter(is_swimming=True).count(),
+            "buildings_with_elevator": queryset.filter(is_elevator=True).count(),
+            "top_cities": list(
+                queryset.values("city")
+                .annotate(count=Count("id"))
+                .order_by("-count")[:10]
             ),
         }
         return Response(stats)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def cities(self, request):
         """
         Returns a list of all unique cities that have buildings.
         Useful for populating a city dropdown/filter on the frontend.
         """
         cities = (
-            Building.objects
-            .values('city', 'state')
-            .annotate(building_count=Count('id'))
-            .order_by('-building_count')
+            Building.objects.values("city", "state")
+            .annotate(building_count=Count("id"))
+            .order_by("-building_count")
         )
         return Response(list(cities))
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def nearby(self, request):
         """
         Returns buildings near a given lat/lng coordinate.
@@ -130,14 +164,14 @@ class BuildingViewSet(viewsets.ModelViewSet):
 
         Example: /api/buildings/nearby/?lat=19.07&lng=72.87&radius=0.1
         """
-        lat = request.query_params.get('lat')
-        lng = request.query_params.get('lng')
-        radius = float(request.query_params.get('radius', 0.05))
+        lat = request.query_params.get("lat")
+        lng = request.query_params.get("lng")
+        radius = float(request.query_params.get("radius", 0.05))
 
         if not lat or not lng:
             return Response(
-                {'error': 'Both lat and lng query parameters are required'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Both lat and lng query parameters are required"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         lat = float(lat)
@@ -148,12 +182,12 @@ class BuildingViewSet(viewsets.ModelViewSet):
             latitude__lte=lat + radius,
             longitude__gte=lng - radius,
             longitude__lte=lng + radius,
-        ).order_by('-avg_rating')[:50]
+        ).order_by("-avg_rating")[:50]
 
         serializer = BuildingNearbySerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='top-rated')
+    @action(detail=False, methods=["get"], url_path="top-rated")
     def top_rated(self, request):
         """
         Returns the top-rated buildings.
@@ -162,8 +196,8 @@ class BuildingViewSet(viewsets.ModelViewSet):
             limit (int): Number of buildings to return (default: 10, max: 50)
             city (str): Optional city filter
         """
-        limit = min(int(request.query_params.get('limit', 10)), 50)
-        city = request.query_params.get('city')
+        limit = min(int(request.query_params.get("limit", 10)), 50)
+        city = request.query_params.get("city")
 
         queryset = Building.objects.filter(
             avg_rating__isnull=False,
@@ -173,11 +207,11 @@ class BuildingViewSet(viewsets.ModelViewSet):
         if city:
             queryset = queryset.filter(city__iexact=city)
 
-        queryset = queryset.order_by('-avg_rating', '-review_count')[:limit]
+        queryset = queryset.order_by("-avg_rating", "-review_count")[:limit]
         serializer = BuildingNearbySerializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def images(self, request, pk=None):
         """Get all images for this building."""
         building = self.get_object()
@@ -185,23 +219,21 @@ class BuildingViewSet(viewsets.ModelViewSet):
         serializer = BuildingImageSerializer(images, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def add_image(self, request, pk=None):
         """
         Add an image URL to this building.
         POST body: { "image": "https://example.com/photo.jpg" }
         """
         building = self.get_object()
-        image_url = request.data.get('image')
+        image_url = request.data.get("image")
         if not image_url:
             return Response(
-                {'error': 'image URL is required'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "image URL is required"}, status=status.HTTP_400_BAD_REQUEST
             )
         Images.objects.create(image=image_url, build_ID=building)
         return Response(
-            {'message': 'Image added successfully'},
-            status=status.HTTP_201_CREATED
+            {"message": "Image added successfully"}, status=status.HTTP_201_CREATED
         )
 
 
@@ -209,47 +241,57 @@ class BuildingViewSet(viewsets.ModelViewSet):
 #  BUILDING IMAGE VIEWS (standalone CRUD)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class BuildingImageViewSet(viewsets.ModelViewSet):
     """
     Standalone CRUD for building images.
     For adding images to a specific building, prefer
     /api/buildings/{id}/add_image/ instead.
     """
-    queryset = Images.objects.select_related('build_ID').all()
+
+    queryset = Images.objects.select_related("build_ID").all()
     serializer_class = BuildingImageSerializer
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
+        if self.action in ["list", "retrieve"]:
             return [AllowAny()]
         return [IsAuthenticated()]
+
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['build_ID']
+    filterset_fields = ["build_ID"]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  PUBLIC VIEWS (read-only, for the tenant-facing app)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class PublicBuildingListView(generics.ListAPIView):
     """
     Public-facing building search for tenants.
     Returns RERA-verified buildings only, sorted by rating.
     """
-    queryset = Building.objects.filter(is_RERA_verified=True).order_by('-avg_rating')
+
+    queryset = Building.objects.filter(is_RERA_verified=True).order_by("-avg_rating")
     serializer_class = BuildingListSerializer
     permission_classes = [AllowAny]
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
     filterset_class = BuildingFilter
-    search_fields = ['name', 'address', 'city']
-    ordering_fields = ['avg_rating', 'review_count', 'name']
-    ordering = ['-avg_rating']
+    search_fields = ["name", "address", "city"]
+    ordering_fields = ["avg_rating", "review_count", "name"]
+    ordering = ["-avg_rating"]
 
 
 class PublicBuildingDetailView(generics.RetrieveAPIView):
     """Public-facing detail view for a single building."""
-    queryset = Building.objects.prefetch_related('images_set').all()
+
+    queryset = Building.objects.prefetch_related("images_set").all()
     serializer_class = BuildingSerializer
     permission_classes = [AllowAny]
-    lookup_field = 'slug'
+    lookup_field = "slug"

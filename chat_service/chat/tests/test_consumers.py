@@ -7,6 +7,7 @@ These tests verify the full WebSocket lifecycle:
   - Event routing (send_message, typing, heartbeat, mark_read)
   - Broadcast events
 """
+
 import uuid
 import time
 import jwt
@@ -68,7 +69,9 @@ class ChatConsumerTest(TestCase):
         self.conversation = _create_conversation(self.owner_id, self.renter_id)
         self.ws_url = f"/ws/chat/{self.conversation.id}/?token={self.owner_token}"
 
-    async def _connect(self, token: str = None, conversation_id: str = None) -> WebsocketCommunicator:
+    async def _connect(
+        self, token: str = None, conversation_id: str = None
+    ) -> WebsocketCommunicator:
         """Helper to create and connect a WebSocket communicator."""
         conv_id = conversation_id or str(self.conversation.id)
         tok = token or self.owner_token
@@ -123,11 +126,13 @@ class ChatConsumerTest(TestCase):
         # (user_online may or may not be received depending on timing)
 
         # Send a message
-        await communicator.send_json_to({
-            "type": "send_message",
-            "content": "Hello from test!",
-            "message_type": "text",
-        })
+        await communicator.send_json_to(
+            {
+                "type": "send_message",
+                "content": "Hello from test!",
+                "message_type": "text",
+            }
+        )
 
         # Should receive receive_message broadcast
         response = None

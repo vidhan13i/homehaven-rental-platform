@@ -10,6 +10,7 @@ Flow:
   4. Service delivers via enabled channels (DeliveryService)
   5. Service pushes to WebSocket via Channel Layer
 """
+
 import logging
 from typing import Optional, List, Tuple
 
@@ -54,7 +55,8 @@ class NotificationService:
         if not prefs.allows_inapp(notification_type):
             logger.info(
                 "In-app notifications disabled for user=%s type=%s",
-                recipient_id, notification_type,
+                recipient_id,
+                notification_type,
             )
             return None
 
@@ -76,7 +78,9 @@ class NotificationService:
 
         logger.info(
             "Notification created | id=%s | recipient=%s | type=%s",
-            notification.id, recipient_id, notification_type,
+            notification.id,
+            recipient_id,
+            notification_type,
         )
 
         # Step 3: Real-time WebSocket push
@@ -85,6 +89,7 @@ class NotificationService:
         # Step 4: Queue email delivery via Celery (if prefs allow)
         if send_email and prefs.allows_email(notification_type):
             from notification.tasks.email_tasks import send_notification_email
+
             send_notification_email.apply_async(
                 args=[str(notification.id), str(recipient_id)],
                 queue="email_delivery",
@@ -124,13 +129,15 @@ class NotificationService:
             )
             logger.debug(
                 "WebSocket push sent | group=%s | notification_id=%s",
-                group_name, notification.id,
+                group_name,
+                notification.id,
             )
         except Exception as exc:
             # WebSocket push failure must never block the consumer thread
             logger.error(
                 "WebSocket push failed | notification_id=%s | error=%s",
-                notification.id, exc,
+                notification.id,
+                exc,
             )
 
     @staticmethod

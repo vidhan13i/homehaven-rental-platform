@@ -25,6 +25,7 @@ Usage in consumer:
         self.user = user
         await self.accept()
 """
+
 import logging
 import urllib.parse
 import jwt

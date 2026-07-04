@@ -9,50 +9,71 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Building',
+            name="Building",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('name', models.CharField(max_length=200)),
-                ('address', models.CharField(max_length=200)),
-                ('slug', models.SlugField(max_length=200)),
-                ('city', models.CharField(max_length=200)),
-                ('state', models.CharField(max_length=200)),
-                ('Pin_code', models.IntegerField()),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
-                ('built_year', models.DateField()),
-                ('no_of_units', models.IntegerField()),
-                ('no_of_floors', models.IntegerField()),
-                ('is_gym', models.BooleanField(default=False)),
-                ('is_swimming', models.BooleanField(default=False)),
-                ('is_garden', models.BooleanField(default=False)),
-                ('review_count', models.IntegerField()),
-                ('avg_rating', models.FloatField()),
-                ('is_elevator', models.BooleanField(default=False)),
-                ('is_RERA_verified', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("name", models.CharField(max_length=200)),
+                ("address", models.CharField(max_length=200)),
+                ("slug", models.SlugField(max_length=200)),
+                ("city", models.CharField(max_length=200)),
+                ("state", models.CharField(max_length=200)),
+                ("Pin_code", models.IntegerField()),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
+                ("built_year", models.DateField()),
+                ("no_of_units", models.IntegerField()),
+                ("no_of_floors", models.IntegerField()),
+                ("is_gym", models.BooleanField(default=False)),
+                ("is_swimming", models.BooleanField(default=False)),
+                ("is_garden", models.BooleanField(default=False)),
+                ("review_count", models.IntegerField()),
+                ("avg_rating", models.FloatField()),
+                ("is_elevator", models.BooleanField(default=False)),
+                ("is_RERA_verified", models.BooleanField(default=False)),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Images',
+            name="Images",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('image', models.URLField()),
-                ('build_ID', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='building.building')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("image", models.URLField()),
+                (
+                    "build_ID",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="building.building",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

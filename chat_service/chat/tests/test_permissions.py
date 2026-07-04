@@ -1,6 +1,7 @@
 """
 Unit tests for permission logic.
 """
+
 import uuid
 from django.test import TestCase
 

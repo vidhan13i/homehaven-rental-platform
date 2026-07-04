@@ -15,6 +15,7 @@ The pattern:
 SimpleJWTUser is a lightweight, non-ORM user object that satisfies
 Django REST Framework's is_authenticated check.
 """
+
 import logging
 import jwt
 from rest_framework import authentication, exceptions

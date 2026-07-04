@@ -14,24 +14,25 @@ Design decisions:
   - priority field allows UI to render urgent alerts differently
   - Soft archive (is_archived) preserves notification history
 """
+
 import uuid
 from django.db import models
 
 
 class NotificationType(models.TextChoices):
-    MESSAGE     = "message",     "Message"
+    MESSAGE = "message", "Message"
     APPLICATION = "application", "Application"
-    REVIEW      = "review",      "Review"
-    LISTING     = "listing",     "Listing"
-    SYSTEM      = "system",      "System"
-    SECURITY    = "security",    "Security"
-    CHAT        = "chat",        "Chat"
+    REVIEW = "review", "Review"
+    LISTING = "listing", "Listing"
+    SYSTEM = "system", "System"
+    SECURITY = "security", "Security"
+    CHAT = "chat", "Chat"
 
 
 class NotificationPriority(models.TextChoices):
-    LOW    = "low",    "Low"
+    LOW = "low", "Low"
     NORMAL = "normal", "Normal"
-    HIGH   = "high",   "High"
+    HIGH = "high", "High"
     URGENT = "urgent", "Urgent"
 
 

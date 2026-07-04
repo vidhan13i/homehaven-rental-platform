@@ -1,6 +1,7 @@
 """
 Filters for chat_service REST API.
 """
+
 import django_filters
 from chat.models import Conversation, Message
 

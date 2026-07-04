@@ -1,42 +1,60 @@
 from rest_framework import serializers
 from building.models import Building, Images
 
-
 # ─── BUILDING IMAGE SERIALIZERS ───────────────────────────────────────────────
+
 
 class BuildingImageSerializer(serializers.ModelSerializer):
     """Serializer for building photos."""
 
     class Meta:
         model = Images
-        fields = ['id', 'image', 'build_ID', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ["id", "image", "build_ID", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 # ─── BUILDING SERIALIZERS ─────────────────────────────────────────────────────
+
 
 class BuildingSerializer(serializers.ModelSerializer):
     """
     Full Building detail serializer.
     Includes nested images and computed amenities summary.
     """
-    images = BuildingImageSerializer(source='images_set', many=True, read_only=True)
+
+    images = BuildingImageSerializer(source="images_set", many=True, read_only=True)
     image_count = serializers.SerializerMethodField()
     amenities = serializers.SerializerMethodField()
 
     class Meta:
         model = Building
         fields = [
-            'id', 'name', 'address', 'slug', 'city', 'state', 'Pin_code',
-            'latitude', 'longitude', 'built_year',
-            'no_of_units', 'no_of_floors',
-            'is_gym', 'is_swimming', 'is_garden', 'is_elevator',
-            'is_RERA_verified',
-            'review_count', 'avg_rating',
-            'amenities', 'images', 'image_count',
-            'created_at', 'updated_at',
+            "id",
+            "name",
+            "address",
+            "slug",
+            "city",
+            "state",
+            "Pin_code",
+            "latitude",
+            "longitude",
+            "built_year",
+            "no_of_units",
+            "no_of_floors",
+            "is_gym",
+            "is_swimming",
+            "is_garden",
+            "is_elevator",
+            "is_RERA_verified",
+            "review_count",
+            "avg_rating",
+            "amenities",
+            "images",
+            "image_count",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ["id", "created_at", "updated_at"]
 
     def get_image_count(self, obj):
         return obj.images_set.count()
@@ -45,13 +63,13 @@ class BuildingSerializer(serializers.ModelSerializer):
         """Returns a list of available amenities for easy frontend display."""
         amenities = []
         if obj.is_gym:
-            amenities.append('Gym')
+            amenities.append("Gym")
         if obj.is_swimming:
-            amenities.append('Swimming Pool')
+            amenities.append("Swimming Pool")
         if obj.is_garden:
-            amenities.append('Garden')
+            amenities.append("Garden")
         if obj.is_elevator:
-            amenities.append('Elevator')
+            amenities.append("Elevator")
         return amenities
 
 
@@ -60,28 +78,37 @@ class BuildingListSerializer(serializers.ModelSerializer):
     Lightweight serializer for search results / map markers.
     Only includes essential fields to keep the payload small.
     """
+
     amenities = serializers.SerializerMethodField()
 
     class Meta:
         model = Building
         fields = [
-            'id', 'name', 'slug', 'city', 'state',
-            'latitude', 'longitude',
-            'no_of_units', 'no_of_floors',
-            'avg_rating', 'review_count',
-            'is_RERA_verified', 'amenities',
+            "id",
+            "name",
+            "slug",
+            "city",
+            "state",
+            "latitude",
+            "longitude",
+            "no_of_units",
+            "no_of_floors",
+            "avg_rating",
+            "review_count",
+            "is_RERA_verified",
+            "amenities",
         ]
 
     def get_amenities(self, obj):
         amenities = []
         if obj.is_gym:
-            amenities.append('Gym')
+            amenities.append("Gym")
         if obj.is_swimming:
-            amenities.append('Swimming Pool')
+            amenities.append("Swimming Pool")
         if obj.is_garden:
-            amenities.append('Garden')
+            amenities.append("Garden")
         if obj.is_elevator:
-            amenities.append('Elevator')
+            amenities.append("Elevator")
         return amenities
 
 
@@ -91,12 +118,24 @@ class BuildingCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Building
         fields = [
-            'name', 'address', 'slug', 'city', 'state', 'Pin_code',
-            'latitude', 'longitude', 'built_year',
-            'no_of_units', 'no_of_floors',
-            'is_gym', 'is_swimming', 'is_garden', 'is_elevator',
-            'is_RERA_verified',
-            'review_count', 'avg_rating',
+            "name",
+            "address",
+            "slug",
+            "city",
+            "state",
+            "Pin_code",
+            "latitude",
+            "longitude",
+            "built_year",
+            "no_of_units",
+            "no_of_floors",
+            "is_gym",
+            "is_swimming",
+            "is_garden",
+            "is_elevator",
+            "is_RERA_verified",
+            "review_count",
+            "avg_rating",
         ]
 
     def validate_Pin_code(self, value):
@@ -138,4 +177,12 @@ class BuildingNearbySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Building
-        fields = ['id', 'name', 'slug', 'latitude', 'longitude', 'avg_rating', 'review_count']
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "latitude",
+            "longitude",
+            "avg_rating",
+            "review_count",
+        ]

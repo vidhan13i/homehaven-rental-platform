@@ -6,6 +6,7 @@ Future support: email, push notification, SMS.
 
 Mirrors the @shared_task pattern from profile_service/profiles_app/tasks.py.
 """
+
 import logging
 
 from celery import shared_task
@@ -51,6 +52,7 @@ def notify_offline_user(
     try:
         # ── Step 1: Verify message still exists and wasn't deleted ──────────
         from chat.repositories import MessageRepository
+
         message = MessageRepository.get_by_id(message_id)
         if not message or message.is_deleted:
             logger.info(
@@ -61,10 +63,9 @@ def notify_offline_user(
 
         # ── Step 2: Check if user came online in the meantime ───────────────
         from chat.services import PresenceService
+
         if PresenceService.is_online(recipient_id):
-            logger.info(
-                "Skipping notification: user %s is now online", recipient_id
-            )
+            logger.info("Skipping notification: user %s is now online", recipient_id)
             return {"status": "skipped", "reason": "user online"}
 
         # ── Step 3: Deliver notification ─────────────────────────────────────
@@ -81,9 +82,7 @@ def notify_offline_user(
             else f"{sender_display} sent you a message: {preview}"
         )
 
-        logger.info(
-            "NOTIFICATION [recipient=%s]: %s", recipient_id, notification_text
-        )
+        logger.info("NOTIFICATION [recipient=%s]: %s", recipient_id, notification_text)
 
         return {
             "status": "delivered",

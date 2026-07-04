@@ -6,7 +6,10 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from notification.services.notification_service import NotificationService
 from notification.repositories.notification_repository import PreferenceRepository
-from notification.api.serializers import NotificationSerializer, NotificationPreferenceSerializer
+from notification.api.serializers import (
+    NotificationSerializer,
+    NotificationPreferenceSerializer,
+)
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
@@ -14,6 +17,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     Read-only CRUD for notifications (created only by Kafka consumers).
     Plus custom actions for mark-read, archive, and delete.
     """
+
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
@@ -23,7 +27,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         qs, _ = NotificationService.get_for_user(
             user_id=user_id,
             is_archived=False,
-            limit=1000, # Handled by pagination class
+            limit=1000,  # Handled by pagination class
         )
         return qs
 
@@ -67,6 +71,7 @@ class NotificationPreferenceView(APIView):
     """
     GET/PATCH user notification preferences.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -83,7 +88,8 @@ class NotificationPreferenceView(APIView):
 
 class HealthView(APIView):
     """Health check endpoint for Docker/Nginx."""
+
     permission_classes = [AllowAny]
-    
+
     def get(self, request):
         return Response({"status": "ok", "service": "notification_service"})

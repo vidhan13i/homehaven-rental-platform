@@ -1,11 +1,12 @@
 """
 Serializers for chat_service REST API.
 """
+
 from rest_framework import serializers
 from chat.models import Conversation, Message, Presence
 
-
 # ─── Message Serializers ──────────────────────────────────────────────────────
+
 
 class ReplyToSerializer(serializers.ModelSerializer):
     """Minimal serializer for the replied-to message (nested in MessageSerializer)."""
@@ -13,8 +14,12 @@ class ReplyToSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = [
-            "id", "sender_id", "content", "message_type",
-            "is_deleted", "created_at",
+            "id",
+            "sender_id",
+            "content",
+            "message_type",
+            "is_deleted",
+            "created_at",
         ]
         read_only_fields = fields
 
@@ -54,10 +59,19 @@ class MessageSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = [
-            "id", "conversation", "sender_id", "is_deleted",
-            "is_edited", "reactions", "starred_by",
-            "delivered_at", "seen_at", "edited_at", "deleted_at",
-            "created_at", "updated_at",
+            "id",
+            "conversation",
+            "sender_id",
+            "is_deleted",
+            "is_edited",
+            "reactions",
+            "starred_by",
+            "delivered_at",
+            "seen_at",
+            "edited_at",
+            "deleted_at",
+            "created_at",
+            "updated_at",
         ]
 
 
@@ -70,10 +84,18 @@ class MessageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = [
-            "id", "conversation", "sender_id",
-            "display_content", "message_type", "attachment",
-            "is_deleted", "is_edited", "reactions",
-            "delivered_at", "seen_at", "created_at",
+            "id",
+            "conversation",
+            "sender_id",
+            "display_content",
+            "message_type",
+            "attachment",
+            "is_deleted",
+            "is_edited",
+            "reactions",
+            "delivered_at",
+            "seen_at",
+            "created_at",
         ]
         read_only_fields = fields
 
@@ -94,12 +116,14 @@ class MessageCreateSerializer(serializers.ModelSerializer):
 
     def validate_message_type(self, value: str) -> str:
         from chat.utils.sanitizer import validate_message_type
+
         if not validate_message_type(value):
             raise serializers.ValidationError(f"Invalid message type: {value}")
         return value
 
     def validate_content(self, value: str) -> str:
         from chat.utils.sanitizer import sanitize_message_content
+
         return sanitize_message_content(value)
 
 
@@ -109,7 +133,11 @@ class MessageEditSerializer(serializers.Serializer):
     content = serializers.CharField(max_length=4000)
 
     def validate_content(self, value: str) -> str:
-        from chat.utils.sanitizer import sanitize_message_content, validate_message_content
+        from chat.utils.sanitizer import (
+            sanitize_message_content,
+            validate_message_content,
+        )
+
         sanitized = sanitize_message_content(value)
         error = validate_message_content(sanitized)
         if error:
@@ -124,6 +152,7 @@ class ReactionSerializer(serializers.Serializer):
 
 
 # ─── Conversation Serializers ─────────────────────────────────────────────────
+
 
 class ConversationSerializer(serializers.ModelSerializer):
     """Full conversation serializer."""
@@ -145,9 +174,13 @@ class ConversationSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = [
-            "id", "owner_id", "renter_id",
-            "last_message", "last_message_at",
-            "created_at", "updated_at",
+            "id",
+            "owner_id",
+            "renter_id",
+            "last_message",
+            "last_message_at",
+            "created_at",
+            "updated_at",
         ]
 
 
@@ -177,6 +210,7 @@ class ConversationListSerializer(serializers.ModelSerializer):
         if not request or not request.user:
             return 0
         from chat.repositories import MessageRepository
+
         return MessageRepository.get_unread_count(
             conversation_id=str(obj.id),
             user_id=str(request.user.id),
@@ -199,6 +233,7 @@ class ConversationCreateSerializer(serializers.Serializer):
 
 
 # ─── Presence Serializer ──────────────────────────────────────────────────────
+
 
 class PresenceSerializer(serializers.ModelSerializer):
     """Serializer for the Presence model."""
