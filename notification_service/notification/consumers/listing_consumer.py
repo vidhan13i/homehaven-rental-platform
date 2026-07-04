@@ -3,8 +3,6 @@ from typing import Dict, Any
 
 from shared_lib.kafka.consumer import BaseKafkaConsumer
 from shared_lib.kafka.topics import Topics
-from notification.models.notification import NotificationType
-from notification.services.notification_service import NotificationService
 
 logger = logging.getLogger("notification.consumer.listing")
 

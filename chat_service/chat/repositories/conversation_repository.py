@@ -39,7 +39,7 @@ class ConversationRepository:
         Ordered by last_message_at DESC (most recent first).
         """
         qs = Conversation.objects.filter(
-            **{f"is_archived": False} if not include_archived else {}
+            **{"is_archived": False} if not include_archived else {}
         ).filter(
             # Django ORM: owner_id=user_id OR renter_id=user_id
         )

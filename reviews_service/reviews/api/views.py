@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count
 from django.conf import settings
 import requests
 from shared_lib.resilience import make_resilient_request
@@ -23,7 +23,7 @@ from reviews.api.serializers import (
 )
 
 
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
 
 @extend_schema_view(
     list=extend_schema(summary="List Reviews", tags=["Reviews"]),

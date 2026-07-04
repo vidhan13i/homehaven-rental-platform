@@ -11,8 +11,7 @@ import jwt
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
-from chat.models import Conversation, Message, Presence
-from chat.authentication.http import SimpleJWTUser
+from chat.models import Conversation, Message
 
 TEST_JWT_SECRET = "test-secret-key-for-api-tests"
 

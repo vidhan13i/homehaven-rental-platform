@@ -7,14 +7,12 @@ These tests verify the full WebSocket lifecycle:
   - Event routing (send_message, typing, heartbeat, mark_read)
   - Broadcast events
 """
-import json
 import uuid
 import time
 import jwt
 
 from django.test import TestCase, override_settings
 from channels.testing import WebsocketCommunicator
-from channels.layers import get_channel_layer
 
 from chat.models import Conversation
 from config.asgi import application

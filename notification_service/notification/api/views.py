@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from notification.models import Notification
 from notification.services.notification_service import NotificationService
 from notification.repositories.notification_repository import PreferenceRepository
 from notification.api.serializers import NotificationSerializer, NotificationPreferenceSerializer

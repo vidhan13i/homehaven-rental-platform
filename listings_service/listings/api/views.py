@@ -44,7 +44,7 @@ from listings.api.filters import (
 #  LISTING VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse
 
 @extend_schema_view(
     list=extend_schema(summary="List all Listings", tags=["Listings"]),

@@ -39,6 +39,22 @@ jobs:
   backend-tests:
     name: Backend Tests - ${{ matrix.service }}
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
     strategy:
       fail-fast: false # Continues testing all services even if one fails
       matrix:

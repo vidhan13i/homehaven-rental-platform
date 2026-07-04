@@ -6,11 +6,9 @@ Calls ConversationRepository for DB access.
 Calls shared_lib.resilience for inter-service HTTP calls.
 """
 import logging
-import uuid
 from typing import Optional
 
 import requests
-from django.conf import settings
 
 from chat.models import Conversation
 from chat.repositories import ConversationRepository

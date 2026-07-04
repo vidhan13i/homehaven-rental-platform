@@ -16,7 +16,7 @@ from typing import Optional, List, Tuple
 from django.utils import timezone
 from django.db import IntegrityError
 
-from notification.models import Notification, NotificationPreference, NotificationType
+from notification.models import Notification, NotificationPreference
 
 logger = logging.getLogger("notification.repository")
 

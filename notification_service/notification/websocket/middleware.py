@@ -2,7 +2,6 @@ import urllib.parse
 from channels.middleware import BaseMiddleware
 import jwt
 from django.conf import settings
-from rest_framework.exceptions import AuthenticationFailed
 
 
 class JWTAuthMiddleware(BaseMiddleware):

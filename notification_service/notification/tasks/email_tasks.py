@@ -14,7 +14,6 @@ import logging
 from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
-from django.template.loader import render_to_string
 
 logger = logging.getLogger("notification.tasks.email")
 
@@ -81,7 +80,7 @@ def _build_subject(notification) -> str:
     """Build email subject from notification type."""
     type_subjects = {
         "message":     "📬 You have a new message — HomeHaven",
-        "application": f"📋 Application update — HomeHaven",
+        "application": "📋 Application update — HomeHaven",
         "review":      "⭐ New review — HomeHaven",
         "listing":     "🏠 New listing available — HomeHaven",
         "system":      "ℹ️ HomeHaven notification",

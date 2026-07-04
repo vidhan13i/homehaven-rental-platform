@@ -27,7 +27,7 @@ from application.api.serializers import (
 )
 
 
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
 
 @extend_schema_view(
     list=extend_schema(summary="List Applications", tags=["Applications"]),

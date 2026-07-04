@@ -58,7 +58,6 @@ class ApplicationApprovedConsumer(BaseKafkaConsumer):
             logger.info("Conversation ready: %s", conversation.id)
             
             # Send a system message welcoming them? (Optional)
-            from chat.services.message_service import MessageService
             # We don't have a strict system user, but we can send it as the agent
             # or just leave the conversation empty for them to start.
             

@@ -6,7 +6,6 @@ from django.test import TestCase
 
 from chat.models import Conversation
 from chat.services.permission_service import PermissionService
-from chat.authentication.http import SimpleJWTUser
 
 
 def _make_conversation(owner_id=None, renter_id=None, listing_id=None) -> Conversation:

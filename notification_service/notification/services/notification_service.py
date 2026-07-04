@@ -11,14 +11,12 @@ Flow:
   5. Service pushes to WebSocket via Channel Layer
 """
 import logging
-import uuid
 from typing import Optional, List, Tuple
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.utils import timezone
 
-from notification.models import Notification, NotificationType, NotificationPriority
+from notification.models import Notification, NotificationPriority
 from notification.repositories.notification_repository import (
     NotificationRepository,
     PreferenceRepository,

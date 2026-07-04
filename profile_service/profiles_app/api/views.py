@@ -7,7 +7,6 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from django.utils import timezone
 from django.conf import settings
 from django.core.cache import cache
 import requests
@@ -23,7 +22,7 @@ from profiles_app.api.serializers import (
 )
 from profiles_app.tasks import send_otp_email
 from profiles_app.throttles import OTPRequestThrottle, OTPVerifyThrottle
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiResponse, OpenApiParameter
 
 
 @extend_schema_view(

@@ -38,7 +38,7 @@ from chat.services import (
     PresenceService,
 )
 from chat.repositories import MessageRepository, ConversationRepository
-from chat.permissions import IsConversationParticipant, IsMessageSender, IsNotBlocked
+from chat.permissions import IsConversationParticipant, IsMessageSender
 from chat.api.serializers import (
     ConversationSerializer,
     ConversationListSerializer,
@@ -48,7 +48,6 @@ from chat.api.serializers import (
     MessageCreateSerializer,
     MessageEditSerializer,
     ReactionSerializer,
-    PresenceSerializer,
 )
 from chat.api.filters import ConversationFilter, MessageFilter
 from chat.api.pagination import ChatPagination, MessagePagination
@@ -58,7 +57,7 @@ logger = logging.getLogger("chat.api.views")
 
 # ─── Conversation ViewSet ─────────────────────────────────────────────────────
 
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
 
 @extend_schema_view(
     list=extend_schema(summary="List Conversations", tags=["Chat"]),
@@ -443,7 +442,6 @@ class MessageViewSet(viewsets.ModelViewSet):
             )
 
         # Validate original message
-        from chat.repositories import MessageRepository
         original = MessageRepository.get_by_id(pk)
         if not original or original.is_deleted:
             return Response(

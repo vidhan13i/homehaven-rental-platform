@@ -9,7 +9,6 @@ Mirrors the @shared_task pattern from profile_service/profiles_app/tasks.py.
 import logging
 
 from celery import shared_task
-from django.conf import settings
 
 logger = logging.getLogger("chat.tasks")
 
@@ -113,7 +112,6 @@ def cleanup_presence() -> dict:
     This task should be scheduled via Celery Beat (not implemented here)
     to run every 5 minutes and ensure DB presence records are accurate.
     """
-    from chat.repositories import PresenceRepository
     from chat.models import Presence
     from django.utils import timezone
     from datetime import timedelta

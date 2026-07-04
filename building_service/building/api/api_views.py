@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count
 
 from building.models import Building, Images
 from building.api.serializers import (
@@ -21,7 +21,7 @@ from building.api.filters import BuildingFilter
 #  BUILDING VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse
 
 @extend_schema_view(
     list=extend_schema(summary="List all Buildings", tags=["Buildings"]),

@@ -36,10 +36,8 @@ Close codes:
 """
 import json
 import logging
-from typing import Optional
 
 from channels.generic.websocket import AsyncWebsocketConsumer
-from django.conf import settings
 
 from chat.authentication.websocket import (
     authenticate_websocket_token,

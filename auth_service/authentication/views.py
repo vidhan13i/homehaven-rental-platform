@@ -6,8 +6,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse
-from .serializers import RegisterSerializer, UserSerializer
-from .models import User
+from .serializers import RegisterSerializer
 from shared_lib.resilience import make_resilient_request
 from shared_lib.kafka.producer import KafkaEventProducer
 from shared_lib.kafka.events import build_event

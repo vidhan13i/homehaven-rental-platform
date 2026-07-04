@@ -7,7 +7,7 @@ import logging
 import uuid
 from typing import Optional
 
-from django.db.models import Q, QuerySet
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from chat.models import Message
