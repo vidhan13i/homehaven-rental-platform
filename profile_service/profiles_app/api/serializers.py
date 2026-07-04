@@ -39,11 +39,12 @@ class ProfileListSerializer(serializers.ModelSerializer):
 
 class ProfileCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating profiles with validation."""
+    id = serializers.UUIDField(required=False)
 
     class Meta:
         model = Profile
         fields = [
-            'userID', 'first_name', 'last_name', 'email',
+            'id', 'userID', 'first_name', 'last_name', 'email',
             'DOB', 'phone_number', 'gender', 'ethnicity',
         ]
 
