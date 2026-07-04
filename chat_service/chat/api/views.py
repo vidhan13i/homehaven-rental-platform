@@ -14,6 +14,9 @@ Design:
     enforces object-level access control.
 """
 import logging
+import json
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from django.db.models import Q
 from rest_framework import viewsets, status, filters
@@ -217,7 +220,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = MessageFilter
     ordering_fields = ["created_at"]
-    ordering = ["created_at"]
+    ordering = ["-created_at"]
     pagination_class = MessagePagination
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
@@ -243,7 +246,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Message.objects.filter(
             conversation_id=conversation_id,
             deleted_at__isnull=True,
-        ).select_related("reply_to").order_by("created_at")
+        ).select_related("reply_to").order_by("-created_at")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -299,8 +302,23 @@ class MessageViewSet(viewsets.ModelViewSet):
         if error:
             return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
+        message_data = MessageSerializer(message).data
+        # msgpack cannot serialize UUID objects; convert all to primitive strings first
+        safe_message_data = json.loads(json.dumps(message_data, default=str))
+
+        # Broadcast via Channel Layer so connected WebSockets receive it in real-time
+        channel_layer = get_channel_layer()
+        group_name = f"chat_{conversation.id}"
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                "type": "broadcast.receive_message",
+                "message": safe_message_data,
+            }
+        )
+
         return Response(
-            MessageSerializer(message).data,
+            message_data,
             status=status.HTTP_201_CREATED,
         )
 

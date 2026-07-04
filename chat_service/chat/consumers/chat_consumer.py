@@ -148,10 +148,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
         # ── Step 8: Send connection confirmation to THIS client only ──────────
+        other_user_id = str(self.conversation.renter_id) if str(self.user.id) == str(self.conversation.owner_id) else str(self.conversation.owner_id)
+        from asgiref.sync import sync_to_async
+        other_user_online = await sync_to_async(PresenceService.is_online)(other_user_id)
+
         await self.send(text_data=json.dumps({
             "type": "connected",
             "conversation_id": self.conversation_id,
             "user_id": str(self.user.id),
+            "other_user_id": other_user_id,
+            "other_user_online": other_user_online,
         }))
 
     async def websocket_disconnect(self, close_code: int) -> None:
