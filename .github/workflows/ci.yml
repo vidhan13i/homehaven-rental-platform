@@ -74,7 +74,14 @@ jobs:
         working-directory: ./${{ matrix.service }}
         env:
           DJANGO_SETTINGS_MODULE: config.settings
-          SECRET_KEY: test-secret-key
+          SECRET_KEY: dummy-test-secret-key
+          JWT_SECRET_KEY: dummy-jwt-secret-key
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_PASSWORD: test
+          REDIS_URL: redis://localhost:6379/0
+          CELERY_BROKER_URL: redis://localhost:6379/1
+          KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
           pytest --cov=. --cov-report=xml --junitxml=pytest-report.xml -v || ret=$?
           if [ "${ret:-0}" -eq 5 ]; then
