@@ -12,6 +12,9 @@ import { ChatView } from './components/chat/ChatView';
 import { MessagesNavBtn, ContactOwnerBtn } from './components/chat/AppChatIntegrations';
 import { agentApi } from './api';
 import { AgentDashboard } from './components/agent/AgentDashboard';
+import { NotificationProvider } from './components/notifications/NotificationContext';
+import NotificationBell from './components/notifications/NotificationBell';
+import NotificationCenter from './components/notifications/NotificationCenter';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -197,6 +200,16 @@ export default function App() {
 
   useEffect(() => { if (currentView === 'listings') fetchListings(); }, [currentView, currentPage]);
   useEffect(() => { if (currentView === 'dashboard' && user) fetchDashboardData(); }, [currentView, user]);
+
+  useEffect(() => {
+    const handleNavigate = (e) => {
+      if (e.detail && e.detail.view) {
+        setCurrentView(e.detail.view);
+      }
+    };
+    window.addEventListener('navigate', handleNavigate);
+    return () => window.removeEventListener('navigate', handleNavigate);
+  }, []);
 
   // ─── API calls ────────────────────────────────────────────────────────────
 
@@ -408,6 +421,7 @@ export default function App() {
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
+    <NotificationProvider>
     <ChatProvider user={user} addToast={addToast}>
     <div className="flex min-h-screen" style={{ background: '#111418', color: '#e8eaed', fontFamily: "'Inter', system-ui, sans-serif" }}>
       <Toast toasts={toasts} removeToast={removeToast} />
@@ -476,10 +490,13 @@ export default function App() {
                 <p className="text-xs font-semibold text-[#e8eaed] truncate">{user.username}</p>
                 <p className="text-[10px] text-[#4a4d55] truncate">{user.email}</p>
               </div>
-              <button onClick={handleLogout} title="Sign out"
-                      className="text-[#4a4d55] hover:text-red-400 transition-colors p-1 rounded">
-                <LogOut size={13} />
-              </button>
+              <div className="flex items-center gap-1">
+                <NotificationBell />
+                <button onClick={handleLogout} title="Sign out"
+                        className="text-[#4a4d55] hover:text-red-400 transition-colors p-1 rounded">
+                  <LogOut size={13} />
+                </button>
+              </div>
             </div>
           ) : (
             <button onClick={goToAuth}
@@ -500,6 +517,9 @@ export default function App() {
 
         {/* ══ CHAT ════════════════════════════════════════════════════════ */}
         {currentView === 'chat' && <ChatView user={user} />}
+
+        {/* ══ NOTIFICATIONS ═══════════════════════════════════════════════ */}
+        {currentView === 'notifications' && <NotificationCenter />}
 
         {/* ══ BROWSE ════════════════════════════════════════════════════ */}
         {currentView === 'listings' && (
@@ -1381,5 +1401,6 @@ export default function App() {
       `}</style>
     </div>
     </ChatProvider>
+    </NotificationProvider>
   );
 }

@@ -29,15 +29,33 @@ graph TD
         Gateway -->|/api/listings/| Listings[Listings Service]
         Gateway -->|/api/buildings/| Building[Building Service]
         Gateway -->|/api/reviews/| Reviews[Reviews Service]
+        Gateway -->|/api/chat/ & /ws/chat/| Chat[Chat Service]
+        Gateway -->|/api/notifications/ & /ws/notifications/| Notifications[Notification Service]
+    end
+
+    subgraph Event Bus & Infrastructure
+        Auth & AppService & Chat & Reviews & Listings -->|Produce Events| Kafka[Apache Kafka]
+        Kafka -->|Consume Events| Notifications
+        Kafka -->|Consume Events| Chat
+        Kafka --- ZK[Zookeeper]
     end
 
     subgraph Data & Queue
-        Auth & Profile & AppService & Listings & Building & Reviews -->|DB Connections| PG[(PostgreSQL Database)]
-        Profile -->|OTP Caching| Redis[(Redis Broker & Cache)]
+        Auth & Profile & AppService & Listings & Building & Reviews & Chat & Notifications -->|DB Connections| PG[(PostgreSQL Database)]
+        Profile & Chat & Notifications -->|Cache & WS Backend| Redis[(Redis Broker & Cache)]
         Celery[Celery Worker] -->|Listen Tasks| Redis
         Celery -->|DB Connection| PG
     end
 ```
+
+### Event-Driven Highlights (Kafka)
+- **Notification Service**: Centralized service consuming `UserRegistered`, `ApplicationCreated`, `ApplicationApproved`, `ApplicationRejected`, `MessageSent`, `ReviewCreated`, and `ListingCreated` events to dispatch WebSockets and Emails.
+- **Chat Service**: Consumes `ApplicationApproved` to auto-create a direct conversation between renter and agent.
+
+### Troubleshooting Log
+- **Kafka Docker Images**: Transitioned from `bitnami/kafka:latest` to `confluentinc/cp-kafka:7.6.1` and `confluentinc/cp-zookeeper:7.6.1` due to unresolved tag issues and missing `kafka-topics.sh` for healthchecks.
+- **YAML Formatting**: Fixed YAML block array vs dict formatting in the Kafka environment block inside `docker-compose.yml`.
+- **Healthchecks**: Addressed docker compose hanging on dependency wait by using `--no-deps` for `makemigrations` and adjusting compose wait mechanisms.
 
 ### Microservices Catalog
 1. **Nginx Gateway**: The single entry point, routing requests dynamically to target internal services.
