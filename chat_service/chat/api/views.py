@@ -17,6 +17,11 @@ import logging
 import json
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from shared_lib.kafka.producer import KafkaEventProducer
+from shared_lib.kafka.events import build_event
+from shared_lib.kafka.topics import Topics
+
+_kafka_producer = KafkaEventProducer()
 
 from django.db.models import Q
 from rest_framework import viewsets, status, filters
@@ -316,6 +321,34 @@ class MessageViewSet(viewsets.ModelViewSet):
                 "message": safe_message_data,
             }
         )
+
+        # Publish MessageSent domain event to Kafka (fire-and-forget)
+        # notification_service consumes this to push in-app and email notifications
+        try:
+            # Determine the recipient (the other participant in the conversation)
+            participants = list(conversation.participants)
+            sender_id = str(request.user.id)
+            recipient_id = next(
+                (p for p in participants if str(p) != sender_id), None
+            )
+            kafka_event = build_event(
+                event_type="MessageSent",
+                aggregate_id=str(message.id),
+                source_service="chat_service",
+                payload={
+                    "message_id": str(message.id),
+                    "conversation_id": str(conversation.id),
+                    "sender_id": sender_id,
+                    "recipient_id": str(recipient_id) if recipient_id else None,
+                    "content_preview": (message.content or "")[:100],
+                    "message_type": message.message_type,
+                },
+            )
+            _kafka_producer.publish_async(
+                Topics.CHAT_MESSAGE_SENT, kafka_event, key=str(conversation.id)
+            )
+        except Exception as exc:
+            logger.error("Failed to publish MessageSent event: %s", exc)
 
         return Response(
             message_data,

@@ -13,3 +13,4 @@ django-redis==5.4.0
 tenacity==8.3.0
 requests==2.31.0
 bleach==6.2.0
+confluent-kafka==2.4.0
