@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,6 +8,12 @@ from django.db.models import Avg, Count, Q
 from django.conf import settings
 import requests
 from shared_lib.resilience import make_resilient_request
+from shared_lib.kafka.producer import KafkaEventProducer
+from shared_lib.kafka.events import build_event
+from shared_lib.kafka.topics import Topics
+
+logger = logging.getLogger("reviews.views")
+_kafka_producer = KafkaEventProducer()
 
 from reviews.models.reviews import Review
 from reviews.api.serializers import (
@@ -49,6 +56,26 @@ class ReviewViewSet(viewsets.ModelViewSet):
         elif self.action in ['create', 'update', 'partial_update']:
             return ReviewCreateUpdateSerializer
         return ReviewSerializer
+
+    def perform_create(self, serializer):
+        """Override to publish ReviewCreated event after saving."""
+        review = serializer.save(profile_ID=self.request.user.id)
+        try:
+            event = build_event(
+                event_type="ReviewCreated",
+                aggregate_id=str(review.id),
+                source_service="reviews_service",
+                payload={
+                    "review_id": str(review.id),
+                    "building_id": str(review.building_ID) if review.building_ID else None,
+                    "reviewer_id": str(review.profile_ID) if review.profile_ID else None,
+                    "title": review.Title,
+                    "status": review.status,
+                },
+            )
+            _kafka_producer.publish_async(Topics.REVIEWS_REVIEW_CREATED, event, key=str(review.id))
+        except Exception as exc:
+            logger.error("Failed to publish ReviewCreated event: %s", exc)
 
     # ── Lookup endpoints ───────────────────────────────────────────────────
 

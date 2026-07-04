@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, generics, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,6 +7,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db.models import Avg, Count
 from django.db import transaction
+from shared_lib.kafka.producer import KafkaEventProducer
+from shared_lib.kafka.events import build_event
+from shared_lib.kafka.topics import Topics
+
+logger = logging.getLogger("listings.views")
+_kafka_producer = KafkaEventProducer()
 
 from listings.models import Listing, Unit, Agent, Images, AgentImages
 from listings.api.serializers import (
@@ -77,6 +84,26 @@ class ListingViewSet(viewsets.ModelViewSet):
         elif self.action in ['create', 'update', 'partial_update']:
             return ListingCreateUpdateSerializer
         return ListingSerializer
+
+    def perform_create(self, serializer):
+        """Override to publish ListingCreated event after saving."""
+        listing = serializer.save()
+        try:
+            event = build_event(
+                event_type="ListingCreated",
+                aggregate_id=str(listing.id),
+                source_service="listings_service",
+                payload={
+                    "listing_id": str(listing.id),
+                    "rent": str(listing.rent),
+                    "available_date": str(listing.available_date),
+                    "unit_id": str(listing.unit_ID.id) if listing.unit_ID else None,
+                    "is_verified": listing.is_listing_verified,
+                },
+            )
+            _kafka_producer.publish_async(Topics.LISTINGS_LISTING_CREATED, event, key=str(listing.id))
+        except Exception as exc:
+            logger.error("Failed to publish ListingCreated event: %s", exc)
 
     def get_queryset(self):
         queryset = super().get_queryset()

@@ -1,3 +1,4 @@
+import logging
 import requests
 from django.conf import settings
 from rest_framework import status, generics, exceptions
@@ -7,6 +8,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import RegisterSerializer, UserSerializer
 from .models import User
 from shared_lib.resilience import make_resilient_request
+from shared_lib.kafka.producer import KafkaEventProducer
+from shared_lib.kafka.events import build_event
+from shared_lib.kafka.topics import Topics
+
+logger = logging.getLogger("auth.views")
+_kafka_producer = KafkaEventProducer()
 
 class ServiceUnavailable(exceptions.APIException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
@@ -76,9 +83,34 @@ class RegisterView(generics.CreateAPIView):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
+        self._publish_user_registered(user)
         return Response({
             "message": "OTP sent successfully. Please verify your email."
         }, status=status.HTTP_201_CREATED)
+
+    def _publish_user_registered(self, user) -> None:
+        """Publish UserRegistered domain event to Kafka (fire-and-forget)."""
+        try:
+            event = build_event(
+                event_type="UserRegistered",
+                aggregate_id=str(user.id),
+                source_service="auth_service",
+                payload={
+                    "user_id": str(user.id),
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                },
+            )
+            _kafka_producer.publish_async(
+                Topics.AUTH_USER_REGISTERED,
+                event,
+                key=str(user.id),
+            )
+        except Exception as exc:
+            # Never let Kafka failures block the registration response
+            logger.error("Failed to publish UserRegistered event: %s", exc)
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):

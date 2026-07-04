@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,6 +8,12 @@ from django.conf import settings
 from django.db.models import Count
 import requests
 from shared_lib.resilience import make_resilient_request
+from shared_lib.kafka.producer import KafkaEventProducer
+from shared_lib.kafka.events import build_event
+from shared_lib.kafka.topics import Topics
+
+logger = logging.getLogger("application.views")
+_kafka_producer = KafkaEventProducer()
 
 from application.models import Application, Applicant, Document
 from application.api.serializers import (
@@ -58,6 +65,13 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         application = get_object_or_404(Application, pk=pk)
         application.application_status = Application.ApplicationStatus.APPROVED
         application.save()
+        # Publish ApplicationApproved event — notification_service and chat_service consume this
+        _publish_application_event(
+            "ApplicationApproved",
+            Topics.APPLICATIONS_APPROVED,
+            application,
+            actor_id=str(request.user.id),
+        )
         return Response(ApplicationSerializer(application).data)
 
     @action(detail=True, methods=['post'])
@@ -67,6 +81,13 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         application = get_object_or_404(Application, pk=pk)
         application.application_status = Application.ApplicationStatus.REJECTED
         application.save()
+        # Publish ApplicationRejected event
+        _publish_application_event(
+            "ApplicationRejected",
+            Topics.APPLICATIONS_REJECTED,
+            application,
+            actor_id=str(request.user.id),
+        )
         return Response(ApplicationSerializer(application).data)
 
     @action(detail=True, methods=['post'])
@@ -257,3 +278,36 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             print("VALIDATION ERRORS:", serializer.errors)
         return super().create(request, *args, **kwargs)
+
+
+def _publish_application_event(
+    event_type: str,
+    topic: str,
+    application,
+    actor_id: str = None,
+) -> None:
+    """
+    Publish a domain event for an application state change.
+    Never raises — Kafka failures must never block the API response.
+    """
+    try:
+        applicant = getattr(application, 'applicant_ID', None)
+        event = build_event(
+            event_type=event_type,
+            aggregate_id=str(application.id),
+            source_service="application_service",
+            payload={
+                "application_id": str(application.id),
+                "application_status": application.application_status,
+                "unit_id": str(application.unit_ID) if application.unit_ID else None,
+                "building_id": str(application.building_ID) if application.building_ID else None,
+                "renter_id": str(applicant.profile_ID) if applicant else None,
+                "agent_id": actor_id,
+            },
+        )
+        _kafka_producer.publish(topic, event, key=str(application.id))
+    except Exception as exc:
+        logger.error(
+            "Failed to publish %s event for application %s: %s",
+            event_type, application.id, exc
+        )
