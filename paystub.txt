@@ -1,0 +1,4 @@
+This is a mock paystub document for rental application verification.
+Employer: Acme Corp
+Income: $80,000 / year
+Savings: $25,000

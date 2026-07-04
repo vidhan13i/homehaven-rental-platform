@@ -62,6 +62,7 @@ services:
       - building_service
       - reviews_service
       - auth_service
+      - chat_service
       - redis
     networks:
       - rental_network
@@ -197,6 +198,54 @@ services:
     networks:
       - rental_network
     restart: unless-stopped
+  # ─── CHAT SERVICE ─────────────────────────────────────────────────────────────
+  # Handles: Real-time messaging, WebSocket connections, Conversations, Presence
+  # Runs Daphne (ASGI) instead of runserver — required for concurrent WebSocket support
+  chat_service:
+    build: ./chat_service
+    container_name: chat_service
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - rental_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/chat/health/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── CHAT CELERY WORKER ───────────────────────────────────────────────────────
+  # Background worker for chat notifications (offline user alerts, future email/push/SMS)
+  # Mirrors the existing celery_worker pattern from profile_service
+  chat_celery:
+    build: ./chat_service
+    container_name: chat_celery
+    command: celery -A celery_app worker --loglevel=info -Q chat_notifications
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./shared_lib:/app/shared_lib
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - rental_network
+    restart: unless-stopped
+
 
 
 # ─── VOLUMES ───────────────────────────────────────────────────────────────
