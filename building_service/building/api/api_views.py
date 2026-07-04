@@ -21,6 +21,17 @@ from building.api.filters import BuildingFilter
 #  BUILDING VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+
+@extend_schema_view(
+    list=extend_schema(summary="List all Buildings", tags=["Buildings"]),
+    retrieve=extend_schema(summary="Retrieve a Building", tags=["Buildings"]),
+    create=extend_schema(summary="Create a Building", tags=["Buildings"], responses={201: OpenApiResponse(description="Created")}, examples=[OpenApiExample("Create Building", value={"name": "Empire State"}, request_only=True)]),
+    update=extend_schema(summary="Update a Building", tags=["Buildings"]),
+    partial_update=extend_schema(summary="Partially Update a Building", tags=["Buildings"]),
+    destroy=extend_schema(summary="Delete a Building", tags=["Buildings"]),
+    upload_images=extend_schema(summary="Upload Building Images", tags=["Buildings"])
+)
 class BuildingViewSet(viewsets.ModelViewSet):
     """
     Full CRUD ViewSet for Buildings.

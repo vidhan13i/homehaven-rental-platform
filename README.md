@@ -15,6 +15,23 @@ HomeHaven is a premium crowdsourced tenant reviews, building ratings, and rental
 
 ## 1. System Architecture
 
+## 2. API Documentation (OpenAPI 3.0)
+
+Every microservice exposes its own independent Swagger UI and ReDoc interface. You can access the interactive API documentation for each service on its dedicated port:
+
+| Service | Swagger UI | ReDoc |
+|---------|------------|-------|
+| Auth Service | [http://localhost:8001/api/docs/](http://localhost:8001/api/docs/) | [http://localhost:8001/api/redoc/](http://localhost:8001/api/redoc/) |
+| Profile Service | [http://localhost:8002/api/docs/](http://localhost:8002/api/docs/) | [http://localhost:8002/api/redoc/](http://localhost:8002/api/redoc/) |
+| Listings Service | [http://localhost:8003/api/docs/](http://localhost:8003/api/docs/) | [http://localhost:8003/api/redoc/](http://localhost:8003/api/redoc/) |
+| Building Service | [http://localhost:8004/api/docs/](http://localhost:8004/api/docs/) | [http://localhost:8004/api/redoc/](http://localhost:8004/api/redoc/) |
+| Application Service| [http://localhost:8005/api/docs/](http://localhost:8005/api/docs/) | [http://localhost:8005/api/redoc/](http://localhost:8005/api/redoc/) |
+| Reviews Service | [http://localhost:8006/api/docs/](http://localhost:8006/api/docs/) | [http://localhost:8006/api/redoc/](http://localhost:8006/api/redoc/) |
+| Chat Service | [http://localhost:8007/api/docs/](http://localhost:8007/api/docs/) | [http://localhost:8007/api/redoc/](http://localhost:8007/api/redoc/) |
+| Notification Service| [http://localhost:8008/api/docs/](http://localhost:8008/api/docs/) | [http://localhost:8008/api/redoc/](http://localhost:8008/api/redoc/) |
+
+*Note: You must pass `Bearer <JWT>` in the Swagger UI Authorize button to test protected endpoints.*
+
 The platform runs on a unified Docker bridge network (`rental_network`) where services discover each other statelessly by container name:
 
 ```mermaid

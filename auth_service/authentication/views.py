@@ -5,6 +5,7 @@ from rest_framework import status, generics, exceptions
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse
 from .serializers import RegisterSerializer, UserSerializer
 from .models import User
 from shared_lib.resilience import make_resilient_request
@@ -21,6 +22,33 @@ class ServiceUnavailable(exceptions.APIException):
     default_code = 'service_unavailable'
 
 
+@extend_schema_view(
+    post=extend_schema(
+        summary="Register a new user",
+        description="Creates a new user account, initializes their profile in the Profile Service, and triggers an OTP verification email.",
+        tags=["Authentication"],
+        responses={
+            201: OpenApiResponse(description="OTP sent successfully. Please verify your email."),
+            400: OpenApiResponse(description="Bad Request - Invalid payload or Profile creation failed"),
+            503: OpenApiResponse(description="Service Unavailable - Profile or OTP service down")
+        },
+        examples=[
+            OpenApiExample(
+                "Valid Registration",
+                summary="Successful registration",
+                description="A correct payload to register a new tenant or owner.",
+                value={
+                    "username": "johndoe",
+                    "password": "SecurePassword123!",
+                    "email": "john@example.com",
+                    "first_name": "John",
+                    "last_name": "Doe"
+                },
+                request_only=True
+            )
+        ]
+    )
+)
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
 
@@ -152,6 +180,29 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         return data
 
 
+@extend_schema_view(
+    post=extend_schema(
+        summary="Obtain JWT Token",
+        description="Authenticates the user and returns an access and refresh token. Fails if the user's email has not been verified via OTP.",
+        tags=["Authentication"],
+        responses={
+            200: OpenApiResponse(description="Tokens returned successfully"),
+            400: OpenApiResponse(description="Email not verified or Profile not found"),
+            401: OpenApiResponse(description="No active account found with the given credentials"),
+            503: OpenApiResponse(description="Profile service temporarily unavailable")
+        },
+        examples=[
+            OpenApiExample(
+                "Login Payload",
+                value={
+                    "username": "johndoe",
+                    "password": "SecurePassword123!"
+                },
+                request_only=True
+            )
+        ]
+    )
+)
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 

@@ -44,6 +44,19 @@ from listings.api.filters import (
 #  LISTING VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+
+@extend_schema_view(
+    list=extend_schema(summary="List all Listings", tags=["Listings"]),
+    retrieve=extend_schema(summary="Retrieve a Listing", tags=["Listings"]),
+    create=extend_schema(summary="Create a Listing", tags=["Listings"], responses={201: ListingCreateUpdateSerializer, 400: OpenApiResponse(description="Validation Error")}, examples=[OpenApiExample("Create Listing", value={"title": "Spacious Apartment"}, request_only=True)]),
+    update=extend_schema(summary="Update a Listing", tags=["Listings"]),
+    partial_update=extend_schema(summary="Partially Update a Listing", tags=["Listings"]),
+    destroy=extend_schema(summary="Delete a Listing", tags=["Listings"]),
+    available=extend_schema(summary="Available Listings", tags=["Listings"]),
+    search=extend_schema(summary="Search Listings", tags=["Listings"]),
+    stats=extend_schema(summary="Listing Stats", tags=["Listings"])
+)
 class ListingViewSet(viewsets.ModelViewSet):
     """
     Full CRUD ViewSet for Listings.
@@ -273,6 +286,16 @@ class PublicListingDetailView(generics.RetrieveAPIView):
 #  UNIT VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@extend_schema_view(
+    list=extend_schema(summary="List all Units", tags=["Units"]),
+    retrieve=extend_schema(summary="Retrieve a Unit", tags=["Units"]),
+    create=extend_schema(summary="Create a Unit", tags=["Units"], examples=[OpenApiExample("Create Unit", value={"unit_number": "101"}, request_only=True)]),
+    update=extend_schema(summary="Update a Unit", tags=["Units"]),
+    partial_update=extend_schema(summary="Partially Update a Unit", tags=["Units"]),
+    destroy=extend_schema(summary="Delete a Unit", tags=["Units"]),
+    available=extend_schema(summary="Available Units", tags=["Units"]),
+    upload_images=extend_schema(summary="Upload Unit Images", tags=["Units"])
+)
 class UnitViewSet(viewsets.ModelViewSet):
     """
     Full CRUD ViewSet for Units (apartments/flats inside a building).
@@ -356,6 +379,15 @@ class UnitViewSet(viewsets.ModelViewSet):
 #  AGENT VIEWS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+@extend_schema_view(
+    list=extend_schema(summary="List all Agents", tags=["Agents"]),
+    retrieve=extend_schema(summary="Retrieve an Agent", tags=["Agents"]),
+    create=extend_schema(summary="Create an Agent", tags=["Agents"], examples=[OpenApiExample("Create Agent", value={"name": "Jane Doe"}, request_only=True)]),
+    update=extend_schema(summary="Update an Agent", tags=["Agents"]),
+    partial_update=extend_schema(summary="Partially Update an Agent", tags=["Agents"]),
+    destroy=extend_schema(summary="Delete an Agent", tags=["Agents"]),
+    upload_images=extend_schema(summary="Upload Agent Images", tags=["Agents"])
+)
 class AgentViewSet(viewsets.ModelViewSet):
     """
     Full CRUD ViewSet for Agents (property managers / real estate agents).

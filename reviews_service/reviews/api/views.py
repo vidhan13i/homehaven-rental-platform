@@ -23,6 +23,16 @@ from reviews.api.serializers import (
 )
 
 
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+
+@extend_schema_view(
+    list=extend_schema(summary="List Reviews", tags=["Reviews"]),
+    retrieve=extend_schema(summary="Retrieve Review", tags=["Reviews"]),
+    create=extend_schema(summary="Create Review", tags=["Reviews"], examples=[OpenApiExample("Create Review", value={"rating": 5, "comment": "Great!"}, request_only=True)]),
+    update=extend_schema(summary="Update Review", tags=["Reviews"]),
+    partial_update=extend_schema(summary="Partially Update Review", tags=["Reviews"]),
+    destroy=extend_schema(summary="Delete Review", tags=["Reviews"])
+)
 class ReviewViewSet(viewsets.ModelViewSet):
     """
     Full CRUD ViewSet for Reviews.

@@ -34,6 +34,7 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
 # ─── INSTALLED APPS ───────────────────────────────────────────────────────────
 INSTALLED_APPS = [
+    'drf_spectacular',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -103,6 +104,7 @@ CHANNEL_LAYERS = {
 
 # ─── REST FRAMEWORK ───────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "chat.authentication.http.TrustedJWTAuthentication",
     ],
@@ -293,5 +295,32 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+    },
+}
+
+
+# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Chat Service API',
+    'DESCRIPTION': '''Real-time chat functionality between users. 
+
+### WebSockets API
+
+**Endpoint**: `ws://localhost:8000/ws/chat/?token=<JWT>`
+
+**Authentication**: Pass JWT token in query parameter.
+
+**Incoming Events**:
+- `chat_message`: Send a message to a conversation.
+
+**Outgoing Events**:
+- `chat_message`: Received when a message is sent to a conversation you are in.''',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
     },
 }

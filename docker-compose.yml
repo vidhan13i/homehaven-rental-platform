@@ -50,13 +50,6 @@ services:
     networks:
       - rental_network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
-
   # ─── POSTGRESQL DATABASE ───────────────────────────────────────────────────
   db:
     image: postgres:15
@@ -112,6 +105,8 @@ services:
   auth_service:
     build: ./auth_service
     container_name: auth_service
+    ports:
+      - "8001:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -121,7 +116,7 @@ services:
       db:
         condition: service_healthy
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -130,6 +125,8 @@ services:
   profile_service:
     build: ./profile_service
     container_name: profile_service
+    ports:
+      - "8002:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -167,6 +164,8 @@ services:
   listings_service:
     build: ./listings_service
     container_name: listings_service
+    ports:
+      - "8003:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -176,7 +175,7 @@ services:
       db:
         condition: service_healthy
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -185,6 +184,8 @@ services:
   application_service:
     build: ./application_service
     container_name: application_service
+    ports:
+      - "8005:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -194,7 +195,7 @@ services:
       db:
         condition: service_healthy
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -203,6 +204,8 @@ services:
   building_service:
     build: ./building_service
     container_name: building_service
+    ports:
+      - "8004:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -219,6 +222,8 @@ services:
   reviews_service:
     build: ./reviews_service
     container_name: reviews_service
+    ports:
+      - "8006:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -228,7 +233,7 @@ services:
       db:
         condition: service_healthy
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -237,6 +242,8 @@ services:
   chat_service:
     build: ./chat_service
     container_name: chat_service
+    ports:
+      - "8007:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -248,7 +255,7 @@ services:
       redis:
         condition: service_started
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -274,7 +281,7 @@ services:
       redis:
         condition: service_started
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -296,7 +303,7 @@ services:
       redis:
         condition: service_started
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -307,6 +314,8 @@ services:
   notification_service:
     build: ./notification_service
     container_name: notification_service
+    ports:
+      - "8008:8000"
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
@@ -318,7 +327,7 @@ services:
       redis:
         condition: service_started
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -344,7 +353,7 @@ services:
       redis:
         condition: service_started
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped
@@ -368,7 +377,7 @@ services:
       redis:
         condition: service_started
       kafka:
-        condition: service_healthy
+        condition: service_started
     networks:
       - rental_network
     restart: unless-stopped

@@ -23,8 +23,26 @@ from profiles_app.api.serializers import (
 )
 from profiles_app.tasks import send_otp_email
 from profiles_app.throttles import OTPRequestThrottle, OTPVerifyThrottle
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
 
 
+@extend_schema_view(
+    list=extend_schema(summary="List all Profiles", tags=["Profiles"]),
+    retrieve=extend_schema(summary="Retrieve a Profile", tags=["Profiles"]),
+    create=extend_schema(summary="Create a Profile", tags=["Profiles"], responses={201: ProfileSerializer}),
+    update=extend_schema(summary="Update a Profile", tags=["Profiles"]),
+    partial_update=extend_schema(summary="Partially Update a Profile", tags=["Profiles"]),
+    destroy=extend_schema(summary="Delete a Profile", tags=["Profiles"]),
+    by_email=extend_schema(
+        summary="Lookup by Email",
+        tags=["Profiles"],
+        parameters=[OpenApiParameter(name="email", type=str, location=OpenApiParameter.QUERY, required=True, description="Email of the user")],
+        responses={200: ProfileSerializer, 400: OpenApiResponse(description="Email parameter missing"), 404: OpenApiResponse(description="Profile not found")}
+    ),
+    reviews=extend_schema(summary="Get Reviews by Profile", tags=["Profiles (External)"], description="Fetches reviews written by this profile from the Reviews Service.", responses={200: OpenApiResponse(description="List of reviews")}),
+    applications=extend_schema(summary="Get Applications by Profile", tags=["Profiles (External)"], description="Fetches rental applications by this profile from the Application Service.", responses={200: OpenApiResponse(description="List of applications")}),
+    stats=extend_schema(summary="Profile Statistics", tags=["Profiles"], responses={200: OpenApiResponse(description="Aggregate stats")})
+)
 class ProfileViewSet(viewsets.ModelViewSet):
     """
     Full CRUD ViewSet for user Profiles.
@@ -131,6 +149,20 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Response(stats)
 
 
+@extend_schema_view(
+    request_otp=extend_schema(
+        summary="Request Email OTP",
+        tags=["OTP Verification"],
+        description="Generate a secure 6-digit OTP and send via email.",
+        responses={200: OpenApiResponse(description="OTP sent successfully")}
+    ),
+    verify_otp=extend_schema(
+        summary="Verify Email OTP",
+        tags=["OTP Verification"],
+        description="Verify an OTP and mark the profile's email as verified.",
+        responses={200: OpenApiResponse(description="Email verified successfully"), 400: OpenApiResponse(description="Invalid or expired OTP")}
+    )
+)
 class EmailOTPViewSet(viewsets.GenericViewSet):
     """
     ViewSet for OTP management using Redis and Celery.

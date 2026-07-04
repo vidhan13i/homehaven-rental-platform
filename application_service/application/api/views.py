@@ -27,6 +27,18 @@ from application.api.serializers import (
 )
 
 
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+
+@extend_schema_view(
+    list=extend_schema(summary="List Applications", tags=["Applications"]),
+    retrieve=extend_schema(summary="Retrieve Application", tags=["Applications"]),
+    create=extend_schema(summary="Create Application", tags=["Applications"], examples=[OpenApiExample("Create App", value={"status": "pending"}, request_only=True)]),
+    update=extend_schema(summary="Update Application", tags=["Applications"]),
+    partial_update=extend_schema(summary="Partially Update Application", tags=["Applications"]),
+    destroy=extend_schema(summary="Delete Application", tags=["Applications"]),
+    approve=extend_schema(summary="Approve Application", tags=["Applications"]),
+    reject=extend_schema(summary="Reject Application", tags=["Applications"])
+)
 class ApplicationViewSet(viewsets.ModelViewSet):
     """
     Full CRUD for rental Applications.

@@ -58,6 +58,16 @@ logger = logging.getLogger("chat.api.views")
 
 # ─── Conversation ViewSet ─────────────────────────────────────────────────────
 
+from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample, OpenApiResponse, OpenApiParameter
+
+@extend_schema_view(
+    list=extend_schema(summary="List Conversations", tags=["Chat"]),
+    retrieve=extend_schema(summary="Retrieve Conversation", tags=["Chat"]),
+    create=extend_schema(summary="Create Conversation", tags=["Chat"], examples=[OpenApiExample("Create Chat", value={"participant_id": "123"}, request_only=True)]),
+    update=extend_schema(summary="Update Conversation", tags=["Chat"]),
+    partial_update=extend_schema(summary="Partially Update Conversation", tags=["Chat"]),
+    destroy=extend_schema(summary="Delete Conversation", tags=["Chat"])
+)
 class ConversationViewSet(viewsets.ModelViewSet):
     """
     REST API for Conversations.
@@ -206,6 +216,14 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
 # ─── Message ViewSet ──────────────────────────────────────────────────────────
 
+@extend_schema_view(
+    list=extend_schema(summary="List Messages", tags=["Chat"]),
+    retrieve=extend_schema(summary="Retrieve Message", tags=["Chat"]),
+    create=extend_schema(summary="Create Message", tags=["Chat"], examples=[OpenApiExample("Send Message", value={"content": "Hello"}, request_only=True)]),
+    update=extend_schema(summary="Update Message", tags=["Chat"]),
+    partial_update=extend_schema(summary="Partially Update Message", tags=["Chat"]),
+    destroy=extend_schema(summary="Delete Message", tags=["Chat"])
+)
 class MessageViewSet(viewsets.ModelViewSet):
     """
     REST API for Messages.
