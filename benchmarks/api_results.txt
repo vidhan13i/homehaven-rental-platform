@@ -1,0 +1,30 @@
+==========================================
+      HomeHaven API Benchmarks (WRK)      
+==========================================
+Concurrency: 100 | Duration: 10s | Threads: 4
+
+------------------------------------------
+Benchmarking: Auth - Register (/auth/register/)
+------------------------------------------
+
+------------------------------------------
+Benchmarking: Auth - Login (/auth/login/)
+------------------------------------------
+
+------------------------------------------
+Benchmarking: Listings - Get Units (/listings/units/)
+------------------------------------------
+
+------------------------------------------
+Benchmarking: Buildings - Get Buildings (/buildings/api/)
+------------------------------------------
+
+------------------------------------------
+Benchmarking: Applications - Get Applications (/applications/api/)
+------------------------------------------
+
+------------------------------------------
+Benchmarking: Notifications - Get Alerts (/notifications/api/)
+------------------------------------------
+
+Benchmarks complete!

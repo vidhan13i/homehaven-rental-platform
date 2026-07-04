@@ -1,0 +1,19 @@
+CONTAINER ID   NAME                          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
+87ede5262e1c   gateway                       0.00%     7.852MiB / 3.827GiB   0.20%     113kB / 120kB     7.01MB / 4.1kB    9
+f5de805d6feb   notification_celery           1.32%     361.7MiB / 3.827GiB   9.23%     406kB / 236kB     9.86MB / 19.8MB   9
+17c624cb794e   listings_service              8.09%     91.55MiB / 3.827GiB   2.34%     11.8kB / 4.99kB   14.5MB / 0B       6
+ca175f2b7600   chat_celery                   1.10%     372.6MiB / 3.827GiB   9.51%     408kB / 219kB     9.6MB / 26.3MB    12
+fa32a3654ab2   chat_kafka_consumer           0.00%     0B / 0B               0.00%     0B / 0B           0B / 0B           0
+2e4826c819b8   auth_service                  7.78%     94.57MiB / 3.827GiB   2.41%     12.3kB / 5.62kB   23.2MB / 0B       6
+1a1842fb0dca   notification_kafka_consumer   0.00%     0B / 0B               0.00%     0B / 0B           0B / 0B           0
+c5e7ad8f87b1   chat_service                  0.49%     75.41MiB / 3.827GiB   1.92%     7.89kB / 126B     20.8MB / 0B       1
+aeee5a2b5e90   application_service           7.72%     99.38MiB / 3.827GiB   2.54%     12.7kB / 5.7kB    12.2MB / 0B       6
+dc05a994973b   notification_service          1.02%     77.81MiB / 3.827GiB   1.99%     7.45kB / 126B     22MB / 2.33MB     1
+9669057f8233   reviews_service               7.35%     97.15MiB / 3.827GiB   2.48%     12.4kB / 5.7kB    6.14MB / 0B       6
+e06f12dab91a   building_service              4.91%     88.44MiB / 3.827GiB   2.26%     9.45kB / 1.97kB   13.3MB / 0B       3
+eec6c28a396c   celery_worker                 1.01%     328.7MiB / 3.827GiB   8.39%     401kB / 200kB     13.6MB / 26.3MB   9
+37043bbd09c0   profile_service               7.32%     112.3MiB / 3.827GiB   2.87%     9.18kB / 2.08kB   11.5MB / 0B       3
+dac4aff6d80f   haven_kafka                   2.40%     364.1MiB / 3.827GiB   9.29%     158kB / 191kB     69MB / 2.62MB     83
+778e30aa203d   db                            0.00%     38.75MiB / 3.827GiB   0.99%     20.3kB / 10.4kB   32MB / 1.1MB      6
+e8cc1cbadce8   redis                         1.10%     10.53MiB / 3.827GiB   0.27%     660kB / 1.19MB    3.56MB / 0B       6
+98a2927d3814   haven_zookeeper               1.16%     87.98MiB / 3.827GiB   2.25%     64.7kB / 46.9kB   31.2MB / 1.01MB   59

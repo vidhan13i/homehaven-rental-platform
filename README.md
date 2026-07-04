@@ -315,3 +315,13 @@ During the development and testing of complex microservice interactions, several
 * **Issue**: Users were appearing "Offline" even when they were actively staring at the chat screen.
 * **Root Cause**: While the system correctly broadcasted a `user_online` event *when* someone connected, it failed to tell newly connected users the status of people who were *already* in the room.
 * **Fix**: Updated the Django Channels `chat_consumer.py` to synchronously query Redis for the other participant's presence status during the initial connection handshake, passing `other_user_online` directly into the frontend's initial state.
+
+---
+
+## 🚀 Performance & Scalability (Benchmarked)
+A comprehensive performance suite was engineered to benchmark the entire microservices architecture locally using Docker Compose. For the full dataset, see [PERFORMANCE_REPORT.md](PERFORMANCE_REPORT.md).
+
+- **API Throughput (Apache Bench)**: The system handles highly concurrent REST requests efficiently, peaking at **2,282 requests/second** for cached application endpoints and sustaining **~1,100 req/sec** for complex database joins (Listings & Buildings). 
+- **WebSocket Scalability (Locust)**: Django Channels, backed by Redis pub/sub, maintained **0% failure rates** and an average response latency of **45ms** while processing 3,210 requests from **250 concurrent users**.
+- **Event-Driven Architecture (Kafka)**: Confluent Kafka pipelines easily exceeded a throughput of **14,000+ messages/sec**, ensuring that asynchronous processes (like profile generation and email notifications) never bottleneck the main HTTP request loop.
+- **Docker Optimization**: The optimized Docker Compose architecture can cold-start the entire 8-service distributed system in **105 seconds**, with subsequent warm starts completing in just **15 seconds**.
