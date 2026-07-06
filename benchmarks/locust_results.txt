@@ -1,75 +1,72 @@
-[2026-07-06 17:26:03,051] Vidhans-MacBook-Air/INFO/locust.main: Starting Locust 2.44.4
-[2026-07-06 17:26:03,054] Vidhans-MacBook-Air/INFO/locust.main: Run time limit set to 10 seconds
+[2026-07-06 18:43:17,732] Vidhans-MacBook-Air/INFO/locust.main: Starting Locust 2.44.4
+[2026-07-06 18:43:17,734] Vidhans-MacBook-Air/INFO/locust.main: Run time limit set to 10 seconds
 Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
          Aggregated                                                                         0     0(0.00%) |      0       0       0      0 |    0.00        0.00
 
-[2026-07-06 17:26:03,054] Vidhans-MacBook-Air/INFO/locust.runners: Ramping to 100 users at a rate of 20.00 per second
+[2026-07-06 18:43:17,734] Vidhans-MacBook-Air/INFO/locust.runners: Ramping to 100 users at a rate of 20.00 per second
 Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-GET      /applications/api/                                                                 6   6(100.00%) |      9       1      19      4 |    0.00        0.00
-GET      /buildings/api/                                                                   20  20(100.00%) |     13       1      22     13 |    0.00        0.00
-GET      /listings/units/                                                                  17  17(100.00%) |     12       0      18     12 |    0.00        0.00
-GET      /notifications/api/                                                                7   7(100.00%) |     14       1      20     17 |    0.00        0.00
+GET      /api/applications/applications/                                                    4     0(0.00%) |     22      14      32     20 |    0.00        0.00
+POST     /api/auth/login/                                                                  33     0(0.00%) |    815     424    1947    690 |    0.00        0.00
+GET      /api/buildings/buildings/                                                          8     0(0.00%) |     29      17      64     26 |    0.00        0.00
+GET      /api/listings/units/                                                              17     0(0.00%) |     40       9     143     23 |    0.00        0.00
+GET      /api/notifications/list/                                                           4     0(0.00%) |     35      10      72     19 |    0.00        0.00
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-         Aggregated                                                                        50  50(100.00%) |     12       0      22     13 |    0.00        0.00
+         Aggregated                                                                        66     0(0.00%) |    425       9    1947    140 |    0.00        0.00
 
 Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-GET      /applications/api/                                                                21  21(100.00%) |     10       1      23      9 |    3.00        3.00
-GET      /buildings/api/                                                                   45  45(100.00%) |     11       1      26     12 |    9.50        9.50
-GET      /listings/units/                                                                  63  63(100.00%) |      9       0      26      9 |    8.50        8.50
-GET      /notifications/api/                                                               22  22(100.00%) |      9       0      25      3 |    3.50        3.50
+GET      /api/applications/applications/                                                   11     0(0.00%) |     16       7      32     16 |    0.50        0.00
+POST     /api/auth/login/                                                                  80     0(0.00%) |    841     424    2413    710 |    7.00        0.00
+GET      /api/buildings/buildings/                                                         45     0(0.00%) |     28       8      97     25 |    1.50        0.00
+GET      /api/listings/units/                                                              44     0(0.00%) |     31       9     143     23 |    3.50        0.00
+GET      /api/notifications/list/                                                          15     0(0.00%) |     25      10      72     23 |    1.50        0.00
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-         Aggregated                                                                       151 151(100.00%) |     10       0      26      9 |   24.50       24.50
+         Aggregated                                                                       195     0(0.00%) |    361       7    2413     39 |   14.00        0.00
 
-[2026-07-06 17:26:07,065] Vidhans-MacBook-Air/INFO/locust.runners: All users spawned: {"HomeHavenUser": 100} (100 total users)
+[2026-07-06 18:43:21,749] Vidhans-MacBook-Air/INFO/locust.runners: All users spawned: {"HomeHavenUser": 100} (100 total users)
 Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-GET      /applications/api/                                                                38  38(100.00%) |      8       0      23      3 |    5.25        5.25
-GET      /buildings/api/                                                                   83  83(100.00%) |      8       1      26      3 |   11.25       11.25
-GET      /listings/units/                                                                 103 103(100.00%) |      7       0      26      3 |   15.00       15.00
-GET      /notifications/api/                                                               40  40(100.00%) |      7       0      25      3 |    5.25        5.25
+GET      /api/applications/applications/                                                   21     0(0.00%) |     18       6      38     16 |    1.50        0.00
+POST     /api/auth/login/                                                                 100     0(0.00%) |    848     424    2413    740 |   14.75        0.00
+GET      /api/buildings/buildings/                                                         82     0(0.00%) |     28       8      97     25 |    6.25        0.00
+GET      /api/listings/units/                                                              78     0(0.00%) |     32       9     143     23 |    8.50        0.00
+GET      /api/notifications/list/                                                          26     0(0.00%) |     30       9     121     23 |    2.75        0.00
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-         Aggregated                                                                       264 264(100.00%) |      7       0      26      3 |   36.75       36.75
+         Aggregated                                                                       307     0(0.00%) |    295       6    2413     35 |   33.75        0.00
 
 Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-GET      /applications/api/                                                                49  49(100.00%) |      6       0      23      2 |    6.33        6.33
-GET      /buildings/api/                                                                  110 110(100.00%) |      6       0      26      2 |   13.33       13.33
-GET      /listings/units/                                                                 144 144(100.00%) |      6       0      26      2 |   16.67       16.67
-GET      /notifications/api/                                                               58  58(100.00%) |      5       0      25      2 |    6.67        6.67
+GET      /api/applications/applications/                                                   31     0(0.00%) |     15       6      38     12 |    2.67        0.00
+POST     /api/auth/login/                                                                 100     0(0.00%) |    848     424    2413    740 |   16.67        0.00
+GET      /api/buildings/buildings/                                                        130     0(0.00%) |     22       8      97     17 |   12.00        0.00
+GET      /api/listings/units/                                                             116     0(0.00%) |     26       9     143     19 |   12.17        0.00
+GET      /api/notifications/list/                                                          38     0(0.00%) |     24       9     121     19 |    4.17        0.00
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-         Aggregated                                                                       361 361(100.00%) |      6       0      26      2 |   43.00       43.00
+         Aggregated                                                                       415     0(0.00%) |    222       6    2413     23 |   47.67        0.00
 
-[2026-07-06 17:26:12,823] Vidhans-MacBook-Air/INFO/locust.main: --run-time limit reached, shutting down
-[2026-07-06 17:26:12,874] Vidhans-MacBook-Air/INFO/locust.main: Shutting down (exit code 1)
+[2026-07-06 18:43:27,470] Vidhans-MacBook-Air/INFO/locust.main: --run-time limit reached, shutting down
+[2026-07-06 18:43:27,512] Vidhans-MacBook-Air/INFO/locust.main: Shutting down (exit code 0)
 Type     Name                                                                          # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-GET      /applications/api/                                                                63  63(100.00%) |      6       0      53      2 |    6.47        6.47
-GET      /buildings/api/                                                                  134 134(100.00%) |      5       0      26      2 |   13.76       13.76
-GET      /listings/units/                                                                 185 185(100.00%) |      5       0      26      2 |   19.00       19.00
-GET      /notifications/api/                                                               72  72(100.00%) |      5       0      25      2 |    7.39        7.39
+GET      /api/applications/applications/                                                   39     0(0.00%) |     14       6      38     12 |    3.99        0.00
+POST     /api/auth/login/                                                                 100     0(0.00%) |    848     424    2413    740 |   10.23        0.00
+GET      /api/buildings/buildings/                                                        167     0(0.00%) |     20       8      97     16 |   17.09        0.00
+GET      /api/listings/units/                                                             144     0(0.00%) |     23       8     143     17 |   14.73        0.00
+GET      /api/notifications/list/                                                          50     0(0.00%) |     21       9     121     14 |    5.12        0.00
 --------|----------------------------------------------------------------------------|-------|-------------|-------|-------|-------|-------|--------|-----------
-         Aggregated                                                                       454 454(100.00%) |      5       0      53      2 |   46.62       46.62
+         Aggregated                                                                       500     0(0.00%) |    186       6    2413     19 |   51.16        0.00
 
 Response time percentiles (approximated)
 Type     Name                                                                                  50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
 --------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
-GET      /applications/api/                                                                      2      4      9     13     20     22     23     53     53     53     53     63
-GET      /buildings/api/                                                                         2      3      9     12     17     23     25     26     26     26     26    134
-GET      /listings/units/                                                                        2      3      7     10     17     19     25     26     26     26     26    185
-GET      /notifications/api/                                                                     2      3      4      7     17     20     25     25     25     25     25     72
+GET      /api/applications/applications/                                                        12     14     19     20     32     35     39     39     39     39     39     39
+POST     /api/auth/login/                                                                      760    810    920    950   1400   1900   2400   2400   2400   2400   2400    100
+GET      /api/buildings/buildings/                                                              16     20     26     28     42     51     57     64     97     97     97    167
+GET      /api/listings/units/                                                                   17     22     25     31     43     49    140    140    140    140    140    144
+GET      /api/notifications/list/                                                               15     21     24     26     35     72    120    120    120    120    120     50
 --------|--------------------------------------------------------------------------------|--------|------|------|------|------|------|------|------|------|------|------|------
-         Aggregated                                                                              2      3      8     11     17     22     25     26     53     53     53    454
-
-Error report
-# occurrences      Error                                                                                               
-------------------|---------------------------------------------------------------------------------------------------------------------------------------------
-134                GET /buildings/api/: HTTPError('404 Client Error: Not Found for url: /buildings/api/')              
-185                GET /listings/units/: HTTPError('404 Client Error: Not Found for url: /listings/units/')            
-63                 GET /applications/api/: HTTPError('404 Client Error: Not Found for url: /applications/api/')        
-72                 GET /notifications/api/: HTTPError('404 Client Error: Not Found for url: /notifications/api/')      
-------------------|---------------------------------------------------------------------------------------------------------------------------------------------
+         Aggregated                                                                             19     30     46    420    760    920   1400   1900   2400   2400   2400    500
 

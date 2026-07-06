@@ -3,19 +3,22 @@
 ==========================================
 Concurrency: 100 | Duration: 10s | Threads: 4
 
+Login failed, attempting to register...
+Force verifying email for benchmark user...
+Successfully fetched JWT token.
 ------------------------------------------
 Benchmarking: Auth - Register (/api/auth/register/)
 ------------------------------------------
 Running 10s test @ http://gateway:80/api/auth/register/
   4 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    96.80ms  207.28ms   1.89s    95.12%
-    Req/Sec   362.02    132.31   620.00     70.03%
-  14078 requests in 10.10s, 5.12MB read
-  Socket errors: connect 0, read 0, write 0, timeout 36
-  Non-2xx or 3xx responses: 14078
-Requests/sec:   1394.46
-Transfer/sec:    518.84KB
+    Latency   680.07ms  369.69ms   1.99s    71.63%
+    Req/Sec    32.65     25.59   150.00     75.66%
+  1100 requests in 10.07s, 409.28KB read
+  Socket errors: connect 0, read 0, write 0, timeout 69
+  Non-2xx or 3xx responses: 1100
+Requests/sec:    109.28
+Transfer/sec:     40.66KB
 
 ------------------------------------------
 Benchmarking: Auth - Login (/api/auth/login/)
@@ -23,12 +26,13 @@ Benchmarking: Auth - Login (/api/auth/login/)
 Running 10s test @ http://gateway:80/api/auth/login/
   4 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    72.26ms   86.63ms   1.27s    97.75%
-    Req/Sec   398.36    109.28   640.00     67.00%
-  15877 requests in 10.10s, 5.77MB read
-  Non-2xx or 3xx responses: 15877
-Requests/sec:   1572.25
-Transfer/sec:    584.99KB
+    Latency   107.01ms  122.31ms   1.28s    93.29%
+    Req/Sec   253.57    142.31   656.00     64.49%
+  9769 requests in 10.09s, 3.55MB read
+  Socket errors: connect 0, read 0, write 0, timeout 50
+  Non-2xx or 3xx responses: 9769
+Requests/sec:    968.45
+Transfer/sec:    360.33KB
 
 ------------------------------------------
 Benchmarking: Listings - Get Units (/api/listings/units/)
@@ -36,53 +40,49 @@ Benchmarking: Listings - Get Units (/api/listings/units/)
 Running 10s test @ http://gateway:80/api/listings/units/
   4 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   100.61ms  209.11ms   1.90s    95.02%
-    Req/Sec   329.05    106.10   550.00     73.42%
-  12551 requests in 10.10s, 5.28MB read
-  Socket errors: connect 0, read 0, write 0, timeout 36
-  Non-2xx or 3xx responses: 12551
-Requests/sec:   1242.97
-Transfer/sec:    535.30KB
+    Latency   752.45ms  280.61ms   1.89s    75.61%
+    Req/Sec    26.77     15.18    70.00     61.41%
+  845 requests in 10.11s, 4.78MB read
+  Socket errors: connect 0, read 0, write 0, timeout 66
+Requests/sec:     83.61
+Transfer/sec:    484.62KB
 
 ------------------------------------------
-Benchmarking: Buildings - Get Buildings (/api/buildings/api/)
+Benchmarking: Buildings - Get Buildings (/api/buildings/buildings/)
 ------------------------------------------
-Running 10s test @ http://gateway:80/api/buildings/api/
+Running 10s test @ http://gateway:80/api/buildings/buildings/
   4 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   217.44ms  179.43ms   1.65s    85.24%
-    Req/Sec    95.93     41.29   272.00     72.94%
-  3736 requests in 10.07s, 45.35MB read
-  Socket errors: connect 0, read 0, write 0, timeout 51
-  Non-2xx or 3xx responses: 3736
-Requests/sec:    370.86
-Transfer/sec:      4.50MB
+    Latency   695.47ms  370.24ms   2.00s    69.41%
+    Req/Sec    34.60     22.11   130.00     62.05%
+  1284 requests in 10.08s, 8.61MB read
+  Socket errors: connect 0, read 0, write 0, timeout 43
+Requests/sec:    127.33
+Transfer/sec:      0.85MB
 
 ------------------------------------------
-Benchmarking: Applications - Get Applications (/api/applications/api/)
+Benchmarking: Applications - Get Applications (/api/applications/applications/)
 ------------------------------------------
-Running 10s test @ http://gateway:80/api/applications/api/
+Running 10s test @ http://gateway:80/api/applications/applications/
   4 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   256.71ms  149.79ms   1.54s    81.97%
-    Req/Sec    89.24     39.42   270.00     70.35%
-  3366 requests in 10.08s, 58.38MB read
-  Socket errors: connect 0, read 0, write 0, timeout 63
-  Non-2xx or 3xx responses: 3366
-Requests/sec:    334.09
-Transfer/sec:      5.79MB
+    Latency   343.59ms  269.79ms   1.94s    75.75%
+    Req/Sec    70.17     36.73   191.00     69.17%
+  2738 requests in 10.08s, 1.01MB read
+  Socket errors: connect 0, read 0, write 0, timeout 46
+Requests/sec:    271.69
+Transfer/sec:    102.95KB
 
 ------------------------------------------
-Benchmarking: Notifications - Get Alerts (/api/notifications/api/)
+Benchmarking: Notifications - Get Alerts (/api/notifications/list/)
 ------------------------------------------
-Running 10s test @ http://gateway:80/api/notifications/api/
+Running 10s test @ http://gateway:80/api/notifications/list/
   4 threads and 100 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   425.30ms  181.49ms   1.47s    90.23%
-    Req/Sec    65.18     36.30   212.00     74.11%
-  2383 requests in 10.02s, 21.13MB read
-  Non-2xx or 3xx responses: 2383
-Requests/sec:    237.75
-Transfer/sec:      2.11MB
+    Latency   456.68ms  195.80ms   1.51s    88.76%
+    Req/Sec    57.66     28.38   178.00     65.93%
+  2184 requests in 10.02s, 868.05KB read
+Requests/sec:    217.95
+Transfer/sec:     86.63KB
 
 Benchmarks complete!
