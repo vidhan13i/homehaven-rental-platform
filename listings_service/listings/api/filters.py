@@ -2,7 +2,7 @@ import django_filters
 from django.db.models import Q
 from listings.models import Listing, Unit, Agent
 
-# ─── LISTING FILTERS ──────────────────────────────────────────────────────────
+
 
 
 class ListingFilter(django_filters.FilterSet):
@@ -45,10 +45,8 @@ class ListingFilter(django_filters.FilterSet):
         field_name="publish_date", lookup_expr="lte"
     )
 
-    # Filter by agent (cross FK: listing → unit → agent)
     agent = django_filters.UUIDFilter(field_name="unit_ID__agent_ID")
 
-    # Filter by furnishing (cross FK: listing → unit)
     is_furnished = django_filters.BooleanFilter(field_name="unit_ID__is_furnished")
 
     # Filter by bedrooms and bathrooms
@@ -91,7 +89,7 @@ class AvailableListingFilter(ListingFilter):
         self.queryset = self.queryset.filter(available_date__gte=timezone.now().date())
 
 
-# ─── UNIT FILTERS ─────────────────────────────────────────────────────────────
+
 
 
 class UnitFilter(django_filters.FilterSet):
@@ -138,7 +136,7 @@ class UnitFilter(django_filters.FilterSet):
         )
 
 
-# ─── AGENT FILTERS ────────────────────────────────────────────────────────────
+
 
 
 class AgentFilter(django_filters.FilterSet):

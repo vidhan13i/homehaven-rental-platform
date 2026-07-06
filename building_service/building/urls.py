@@ -14,7 +14,6 @@ router.register(r"building-images", BuildingImageViewSet, basename="building-ima
 app_name = "building_api"
 
 urlpatterns = [
-    # All ViewSet routes (CRUD + custom actions)
     path("", include(router.urls)),
     # Public-facing endpoints (read-only)
     path(

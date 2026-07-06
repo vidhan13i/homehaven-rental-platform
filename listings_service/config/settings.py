@@ -8,8 +8,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─── SECURITY ────────────────────────────────────────────────────────────────
-# Read from environment variable — falls back to dev key locally
+# Security
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise ImproperlyConfigured("SECRET_KEY environment variable is required")
@@ -21,7 +20,7 @@ if not JWT_SECRET_KEY:
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
-# ─── INSTALLED APPS ───────────────────────────────────────────────────────────
+──
 INSTALLED_APPS = [
     "drf_spectacular",
     "django.contrib.admin",
@@ -30,13 +29,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "listings.apps.ListingsConfig",  # ✅ Fixed: was 'listings-service.apps.ListingsConfig'
+    "listings.apps.ListingsConfig",
     "rest_framework",
     "django_filters",
     "corsheaders",
 ]
 
-# ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
+────
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -67,7 +66,7 @@ TEMPLATES = [
 
 # JWT_SECRET_KEY is validated above
 
-# ─── REST FRAMEWORK ───────────────────────────────────────────────────────────
+# REST Framework──
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -76,7 +75,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
-    # ✅ Fixed: was 'listings-service.pagination.ListingPagination'
+
     "DEFAULT_PAGINATION_CLASS": "listings.api.pagination.ListingPagination",
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
@@ -105,7 +104,7 @@ REST_FRAMEWORK = {
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# ─── CORS ─────────────────────────────────────────────────────────────────────
+# CORS────
 CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -120,8 +119,7 @@ CORS_ALLOW_HEADERS = [
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
-# HOST is 'db' in Docker (container name), 'localhost' locally
+# Database
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5433")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -134,10 +132,10 @@ DATABASES = {
         "NAME": "postgres",
         "USER": "postgres",
         "PASSWORD": DB_PASSWORD,
-        "HOST": DB_HOST,  # ✅ 'db' in Docker, 'localhost' locally
+        "HOST": DB_HOST,
         "PORT": DB_PORT,
     },
-    "listings": {  # ✅ Fixed: was "listings-service"
+    "listings": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "listings",
         "USER": "postgres",
@@ -151,7 +149,7 @@ DATABASE_ROUTERS = [
     "config.db_router.ListingsRouter",
 ]
 
-# ─── PASSWORD VALIDATION ─────────────────────────────────────────────────────
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
@@ -161,7 +159,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# ─── INTERNATIONALISATION ─────────────────────────────────────────────────────
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
@@ -174,7 +172,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
+# DRF Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "Listings Service API",
     "DESCRIPTION": """Hosts rental listings, units, agent credentials, and property imagery.""",

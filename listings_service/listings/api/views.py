@@ -39,9 +39,9 @@ from listings.api.filters import (
     AgentFilter,
 )
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  LISTING VIEWS
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# Listing views
+
 
 from drf_spectacular.utils import (
     extend_schema_view,
@@ -321,9 +321,9 @@ class PublicListingDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  UNIT VIEWS
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# Unit views
+
 
 
 @extend_schema_view(
@@ -429,9 +429,9 @@ class UnitViewSet(viewsets.ModelViewSet):
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  AGENT VIEWS
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# Agent views
+
 
 
 @extend_schema_view(
@@ -584,9 +584,9 @@ class AgentViewSet(viewsets.ModelViewSet):
         return Response(stats)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  IMAGE VIEWS (standalone CRUD for bulk operations)
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# Image views
+
 
 
 class UnitImageViewSet(viewsets.ModelViewSet):

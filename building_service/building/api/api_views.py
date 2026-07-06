@@ -16,9 +16,7 @@ from building.api.serializers import (
 from building.api.pagination import StandardResultsSetPagination
 from building.api.filters import BuildingFilter
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  BUILDING VIEWS
-# ═══════════════════════════════════════════════════════════════════════════════
+# Building views
 
 from drf_spectacular.utils import (
     extend_schema_view,
@@ -111,7 +109,7 @@ class BuildingViewSet(viewsets.ModelViewSet):
             return BuildingNearbySerializer
         return BuildingSerializer
 
-    # ── Custom Actions ─────────────────────────────────────────────────────
+
 
     @action(detail=False, methods=["get"])
     def stats(self, request):
@@ -237,9 +235,7 @@ class BuildingViewSet(viewsets.ModelViewSet):
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 #  BUILDING IMAGE VIEWS (standalone CRUD)
-# ═══════════════════════════════════════════════════════════════════════════════
 
 
 class BuildingImageViewSet(viewsets.ModelViewSet):
@@ -262,9 +258,7 @@ class BuildingImageViewSet(viewsets.ModelViewSet):
     filterset_fields = ["build_ID"]
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  PUBLIC VIEWS (read-only, for the tenant-facing app)
-# ═══════════════════════════════════════════════════════════════════════════════
+# Public views
 
 
 class PublicBuildingListView(generics.ListAPIView):

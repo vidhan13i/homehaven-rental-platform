@@ -18,6 +18,5 @@ urlpatterns = [
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("admin/buildings/", admin.site.urls),
-    # All building app routes live under /api/buildings/
     path("api/buildings/", include("building.urls")),
 ]

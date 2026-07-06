@@ -1,7 +1,7 @@
 from django.contrib import admin
 from listings.models import Listing, Unit, Agent, Images, AgentImages
 
-# ─── INLINE MODELS (show child records inside parent's admin page) ────────────
+
 
 
 class UnitImageInline(admin.TabularInline):
@@ -36,7 +36,7 @@ class AgentImageInline(admin.TabularInline):
     extra = 1
 
 
-# ─── MODEL ADMIN CLASSES ─────────────────────────────────────────────────────
+
 
 
 @admin.register(Agent)

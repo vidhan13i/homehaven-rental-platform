@@ -24,7 +24,6 @@ router.register(r"agent-images", AgentImageViewSet, basename="agent-image")
 app_name = "listings_api"
 
 urlpatterns = [
-    # Public-facing endpoints (read-only, no auth)
     path(
         "listings/public/", PublicListingListView.as_view(), name="public-listing-list"
     ),
@@ -33,7 +32,6 @@ urlpatterns = [
         PublicListingDetailView.as_view(),
         name="public-listing-detail",
     ),
-    # All ViewSet routes (CRUD + custom actions)
     path("", include(router.urls)),
     # DRF browsable API login/logout
     path("api-auth/", include("rest_framework.urls")),

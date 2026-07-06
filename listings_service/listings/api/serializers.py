@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from listings.models import Listing, Unit, Agent, Images, AgentImages
 
-# ─── AGENT SERIALIZERS ────────────────────────────────────────────────────────
+
 
 
 class AgentImageSerializer(serializers.ModelSerializer):
@@ -95,7 +95,7 @@ class AgentCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
 
-# ─── UNIT SERIALIZERS ─────────────────────────────────────────────────────────
+
 
 
 class UnitImageSerializer(serializers.ModelSerializer):
@@ -204,7 +204,7 @@ class UnitCreateUpdateSerializer(serializers.ModelSerializer):
         return data
 
 
-# ─── LISTING SERIALIZERS ──────────────────────────────────────────────────────
+
 
 
 class ListingSerializer(serializers.ModelSerializer):

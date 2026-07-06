@@ -1,7 +1,7 @@
 from django.contrib import admin
 from building.models import Building, Images
 
-# ─── INLINE MODELS ────────────────────────────────────────────────────────────
+
 
 
 class BuildingImageInline(admin.TabularInline):
@@ -13,7 +13,7 @@ class BuildingImageInline(admin.TabularInline):
     readonly_fields = ["created_at"]
 
 
-# ─── MODEL ADMIN CLASSES ─────────────────────────────────────────────────────
+
 
 
 @admin.register(Building)

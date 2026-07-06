@@ -18,7 +18,5 @@ urlpatterns = [
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("admin/listings/", admin.site.urls),
-    # All listings app routes live under /api/listings/
-    # This includes: listings, units, agents, images
     path("api/listings/", include("listings.urls")),
 ]

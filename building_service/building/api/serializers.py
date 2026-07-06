@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from building.models import Building, Images
 
-# ─── BUILDING IMAGE SERIALIZERS ───────────────────────────────────────────────
+
 
 
 class BuildingImageSerializer(serializers.ModelSerializer):
@@ -13,7 +13,7 @@ class BuildingImageSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
-# ─── BUILDING SERIALIZERS ─────────────────────────────────────────────────────
+
 
 
 class BuildingSerializer(serializers.ModelSerializer):

@@ -86,7 +86,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
+# Database
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5433")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -134,7 +134,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
+# DRF Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "Building Service API",
     "DESCRIPTION": """Aggregates buildings, amenities, and RERA property verifications.""",
