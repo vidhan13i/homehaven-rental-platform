@@ -17,8 +17,8 @@ JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 if not JWT_SECRET_KEY:
     raise ImproperlyConfigured("JWT_SECRET_KEY environment variable is required")
 
-DEBUG = os.environ.get("DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,gateway,listings_service").split(",")
 
 INSTALLED_APPS = [
     "drf_spectacular",
@@ -95,8 +95,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",
-        "user": "1000/hour",
+        "anon": "100000/hour",
+        "user": "100000/hour",
     },
 }
 
@@ -115,7 +115,10 @@ CORS_ALLOW_HEADERS = [
     "x-csrftoken",
     "x-requested-with",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:8000"
+).split(",")
 
 # Database
 DB_HOST = os.environ.get("DB_HOST", "localhost")

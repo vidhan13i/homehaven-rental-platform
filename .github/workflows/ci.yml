@@ -160,6 +160,7 @@ jobs:
         run: |
           coverage combine || echo "No coverage data to combine"
           coverage xml -o coverage.xml || echo "Failed to generate XML"
+          coverage report --fail-under=78
 
       - name: Upload Global Coverage Artifact
         uses: actions/upload-artifact@v4
