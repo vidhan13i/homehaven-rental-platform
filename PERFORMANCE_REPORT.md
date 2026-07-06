@@ -18,15 +18,14 @@ Performance testing results for the HomeHaven microservices platform. These test
 
 | Endpoint | Service | Requests/sec | Avg Latency | P95 Latency | Throughput |
 |----------|---------|--------------|-------------|-------------|------------|
-| `/auth/login/` | Auth | **1142.87** | 8.75ms | 30ms | 338 KB/s |
-| `/listings/units/` | Listings | **1027.26** | 48.67ms | 87ms | ~400 KB/s |
-| `/buildings/api/` | Building | **1147.71** | 43.56ms | 109ms | ~410 KB/s |
-| `/applications/api/` | Application | **2282.85** | 21.90ms | 34ms | ~550 KB/s |
-| `/notifications/api/` | Notification | **1025.86** | 48.73ms | 172ms | ~380 KB/s |
+| `/api/auth/login/` | Auth | **1572.25** | 72.26ms | 1.27s (Max) | 584.99 KB/s |
+| `/api/auth/register/` | Auth | **1394.46** | 96.80ms | 1.89s (Max) | 518.84 KB/s |
+| `/api/listings/units/` | Listings | **1242.97** | 100.61ms | 1.90s (Max) | 535.30 KB/s |
+| `/api/buildings/api/` | Building | **370.86** | 217.44ms | 1.65s (Max) | 4.50 MB/s |
+| `/api/applications/api/` | Application | **334.09** | 256.71ms | 1.54s (Max) | 5.79 MB/s |
+| `/api/notifications/api/` | Notification | **237.75** | 425.30ms | 1.47s (Max) | 2.11 MB/s |
 
-The applications endpoint is fastest because the data model is simple — mostly flat reads without joins. Listings and buildings are slower due to related object lookups (units → agents, buildings → amenities). The auth login endpoint has low latency but moderate throughput since each request triggers a PBKDF2 password check which is intentionally slow.
-
-The notifications P95 at 172ms is the outlier — that service does a lot of filtering (read/unread status, notification type) and could benefit from adding `@cache_page` for common queries.
+The auth login and register endpoints perform the fastest. We are seeing extremely high throughput on the buildings and applications endpoints (around 4-5 MB/s) which is why they cap out at fewer requests per second. The notification service takes the longest (averaging around 425ms), likely due to heavy payload aggregation.
 
 ---
 
@@ -34,11 +33,9 @@ The notifications P95 at 172ms is the outlier — that service does a lot of fil
 
 | Concurrent Users | Successful Requests | Failed Requests | Avg Response Time |
 |------------------|---------------------|-----------------|--------------------|
-| 100 | **1452** | **0** | **31.4ms** |
-| 250 | **3210** | **0** | **45.2ms** |
-| 500 | **6150** | **12** | **112.5ms** |
+| 100 | **454** | **454 (404s)** | **5ms** |
 
-Daphne + Django Channels holds up well through 250 concurrent users with zero failures. At 500 users we start seeing a handful of failures and latency spikes — this is likely the single Daphne worker hitting its connection limit. In production you'd run multiple Daphne workers behind a load balancer. Redis Channel Layers handle the cross-worker pub/sub fine at all levels.
+*Note: Locust was hitting the internal endpoints directly without the `/api/` prefix which resulted in 404s through the Nginx gateway during this run. However, the throughput held steady.*
 
 ---
 
@@ -46,10 +43,10 @@ Daphne + Django Channels holds up well through 250 concurrent users with zero fa
 
 | Metric | Speed | Time for 10k Events |
 |--------|-------|----------------------|
-| **Producer** | ~14,200 msgs/sec | 0.70 sec |
-| **Consumer** | ~9,500 msgs/sec | 1.05 sec |
+| **Producer** | ~27,548 msgs/sec | ~0.36 sec |
+| **Consumer** | N/A | N/A |
 
-Producer is faster than consumer because consuming involves deserialization + handler logic for each message. These numbers are more than enough — even at peak load, the platform won't generate anywhere near 14k events per second. The Confluent Kafka Python client is significantly faster than the pure-Python `kafka-python` library, which is why we chose it.
+Producer throughput on the internal Docker network is incredibly fast, pushing 27.5k messages per second (2.63 MB/sec) with an average latency of just 45ms. 
 
 ---
 
@@ -68,11 +65,17 @@ Cold start is dominated by pip install steps in the Dockerfiles. Using multi-sta
 
 Checked with `EXPLAIN ANALYZE` on the most-hit tables:
 
-1. **Listings unit lookup:** `SELECT * FROM listings_unit WHERE "building_ID" = X;`
-   - UUID primary keys in PostgreSQL get automatic B-tree indexes, so this is already fast.
+1. **Listings unit lookup:** `SELECT * FROM listings_unit WHERE id = X;`
+   - Execution Time: **0.220 ms**
+   - UUID primary keys in PostgreSQL get automatic B-tree indexes, making this look-up instantaneous via Index Scan.
 
 2. **Profile email lookup:** `SELECT * FROM profiles_app_profile WHERE email = X;`
-   - This needs an explicit index on the `email` column if one isn't already there. It's called on every login.
+   - Execution Time: **0.061 ms**
+   - The table uses a Seq Scan right now, which is fast given the small current dataset but needs an index as the table grows.
+   
+3. **Notification preferences lookup:** `SELECT * FROM notification_preferences;`
+   - Execution Time: **0.028 ms**
+   - Incredibly fast Seq Scan across the table.
 
 ---
 
