@@ -13,30 +13,13 @@
 [![Apache Kafka](https://img.shields.io/badge/Apache_Kafka-231F20?style=flat-square&logo=apache-kafka&logoColor=white)](https://kafka.apache.org/)
 [![CI Pipeline](https://github.com/vidhan13i/rental-mvc-proejct/actions/workflows/ci.yml/badge.svg)](https://github.com/vidhan13i/rental-mvc-proejct/actions)
 
-HomeHaven is a premium crowdsourced tenant reviews, building ratings, and rental applications microservices platform. The system is built with a decoupled React frontend and a multi-container Django REST Framework backend routed through an Nginx API Gateway.
+HomeHaven is a crowdsourced tenant reviews, building ratings, and rental applications platform. It's built as a set of independent Django REST Framework microservices behind an Nginx API gateway, with a React frontend handling the UI. The goal was to learn how to properly decompose a monolith into services that can be deployed and scaled independently.
 
 ---
 
-## 1. System Architecture
+## System Architecture
 
-## 2. API Documentation (OpenAPI 3.0)
-
-Every microservice exposes its own independent Swagger UI and ReDoc interface. You can access the interactive API documentation for each service on its dedicated port:
-
-| Service | Swagger UI | ReDoc |
-|---------|------------|-------|
-| Auth Service | [http://localhost:8001/api/docs/](http://localhost:8001/api/docs/) | [http://localhost:8001/api/redoc/](http://localhost:8001/api/redoc/) |
-| Profile Service | [http://localhost:8002/api/docs/](http://localhost:8002/api/docs/) | [http://localhost:8002/api/redoc/](http://localhost:8002/api/redoc/) |
-| Listings Service | [http://localhost:8003/api/docs/](http://localhost:8003/api/docs/) | [http://localhost:8003/api/redoc/](http://localhost:8003/api/redoc/) |
-| Building Service | [http://localhost:8004/api/docs/](http://localhost:8004/api/docs/) | [http://localhost:8004/api/redoc/](http://localhost:8004/api/redoc/) |
-| Application Service| [http://localhost:8005/api/docs/](http://localhost:8005/api/docs/) | [http://localhost:8005/api/redoc/](http://localhost:8005/api/redoc/) |
-| Reviews Service | [http://localhost:8006/api/docs/](http://localhost:8006/api/docs/) | [http://localhost:8006/api/redoc/](http://localhost:8006/api/redoc/) |
-| Chat Service | [http://localhost:8007/api/docs/](http://localhost:8007/api/docs/) | [http://localhost:8007/api/redoc/](http://localhost:8007/api/redoc/) |
-| Notification Service| [http://localhost:8008/api/docs/](http://localhost:8008/api/docs/) | [http://localhost:8008/api/redoc/](http://localhost:8008/api/redoc/) |
-
-*Note: You must pass `Bearer <JWT>` in the Swagger UI Authorize button to test protected endpoints.*
-
-The platform runs on a unified Docker bridge network (`rental_network`) where services discover each other statelessly by container name:
+The whole platform runs on a single Docker bridge network (`rental_network`). Services find each other by container name — no service registry needed since everything is on the same compose network. Nginx sits at the front and routes requests to the right service based on URL prefix.
 
 ```mermaid
 graph TD
@@ -69,33 +52,64 @@ graph TD
     end
 ```
 
-### Event-Driven Highlights (Kafka)
-- **Notification Service**: Centralized service consuming `UserRegistered`, `ApplicationCreated`, `ApplicationApproved`, `ApplicationRejected`, `MessageSent`, `ReviewCreated`, and `ListingCreated` events to dispatch WebSockets and Emails.
-- **Chat Service**: Consumes `ApplicationApproved` to auto-create a direct conversation between renter and agent.
+### Why these technologies?
 
-### Troubleshooting Log
-- **Kafka Docker Images**: Transitioned from `bitnami/kafka:latest` to `confluentinc/cp-kafka:7.6.1` and `confluentinc/cp-zookeeper:7.6.1` due to unresolved tag issues and missing `kafka-topics.sh` for healthchecks.
-- **YAML Formatting**: Fixed YAML block array vs dict formatting in the Kafka environment block inside `docker-compose.yml`.
-- **Healthchecks**: Addressed docker compose hanging on dependency wait by using `--no-deps` for `makemigrations` and adjusting compose wait mechanisms.
+- **Django REST Framework** — I wanted something batteries-included where I wouldn't have to write auth middleware or request parsing from scratch. DRF's serializers, viewsets, and permission classes save a lot of boilerplate, and `drf-spectacular` auto-generates OpenAPI docs from the code.
+- **PostgreSQL** — Standard choice for relational data. Each service gets its own logical database on a shared Postgres instance (in prod you'd split these out to separate servers).
+- **Apache Kafka** — The services need to react to events without tight coupling. When someone submits an application, the notification service and chat service both need to know, but the application service shouldn't have to call them directly. Kafka handles that fan-out. We went with Confluent's Docker images (`cp-kafka:7.6.1`) after running into issues with Bitnami's `latest` tag missing `kafka-topics.sh` for healthchecks.
+- **Redis** — Used for three different things: Celery broker (task queues), Django Channels layer (WebSocket pub/sub), and OTP storage with TTL. Each use case gets its own Redis DB number to avoid key collisions.
+- **Celery** — Sending emails synchronously would block the request thread. Celery offloads that to a worker process. Same deal for any slow background work.
+- **Nginx** — Acts as the API gateway. It handles routing, CORS, and serves as the single entry point so the frontend only needs to know about one host.
+- **Tenacity** — When service A calls service B over HTTP, B might be temporarily down. Tenacity gives us retry with exponential backoff so transient failures don't immediately crash the whole flow. The alternative was writing retry loops by hand, which gets messy fast.
 
-### Microservices Catalog
-1. **Nginx Gateway**: The single entry point, routing requests dynamically to target internal services.
-2. **Auth Service**: Handles user registration, JWT token generation, simplejwt authentication, and coordinates profile setups.
-3. **Profile Service**: Manages detailed tenant profiles and coordinates OTP generation.
-4. **Celery Worker**: Performs background email dispatches for OTP codes.
-5. **Application Service**: Handles creation and approval flow of rental applications, documents, and applicant profiles.
-6. **Listings Service**: Hosts rental listings, units, agent credentials, and property imagery.
-7. **Building Service**: Aggregates buildings, amenities, and RERA property verifications.
-8. **Reviews Service**: Aggregates crowdsourced property ratings and tenant feedback.
+### Event-Driven Communication
+
+- **Notification Service** consumes events from Kafka (`UserRegistered`, `ApplicationCreated`, `ApplicationApproved`, `ApplicationRejected`, `MessageSent`, `ReviewCreated`, `ListingCreated`) and dispatches WebSocket alerts and emails.
+- **Chat Service** listens for `ApplicationApproved` events and auto-creates a conversation between the renter and agent so they can start messaging immediately.
+
+### Services Overview
+
+| # | Service | What it does |
+|---|---------|-------------|
+| 1 | **Nginx Gateway** | Single entry point, routes by URL prefix |
+| 2 | **Auth Service** | Registration, JWT tokens (SimpleJWT), coordinates profile creation |
+| 3 | **Profile Service** | User profiles, OTP email verification |
+| 4 | **Celery Workers** | Background email dispatch for OTP codes |
+| 5 | **Application Service** | Rental application lifecycle (create, approve, reject) |
+| 6 | **Listings Service** | Properties, units, agents, images |
+| 7 | **Building Service** | Buildings, amenities, RERA verification |
+| 8 | **Reviews Service** | Crowdsourced property ratings and tenant feedback |
+| 9 | **Chat Service** | Real-time messaging via Django Channels + WebSockets |
+| 10 | **Notification Service** | Event-driven notifications (in-app, email, WebSocket push) |
 
 ---
 
-## 2. Platform Workflows & Flowcharts
+## API Documentation (OpenAPI 3.0)
 
-The following diagrams illustrate the detailed working mechanics of the system during user onboarding, OTP verification, authentication, and rental submissions.
+Every service has its own Swagger UI and ReDoc. Once the containers are running:
 
-### A. User Registration & Profile Provisioning Flow
-During registration, the `auth_service` coordinates with the `profile_service` to build user credentials and profile records. If profile creation fails due to network issues, the user creation is rolled back (deleted) to prevent orphaned login accounts.
+| Service | Swagger UI | ReDoc |
+|---------|------------|-------|
+| Auth Service | [http://localhost:8001/api/docs/](http://localhost:8001/api/docs/) | [http://localhost:8001/api/redoc/](http://localhost:8001/api/redoc/) |
+| Profile Service | [http://localhost:8002/api/docs/](http://localhost:8002/api/docs/) | [http://localhost:8002/api/redoc/](http://localhost:8002/api/redoc/) |
+| Listings Service | [http://localhost:8003/api/docs/](http://localhost:8003/api/docs/) | [http://localhost:8003/api/redoc/](http://localhost:8003/api/redoc/) |
+| Building Service | [http://localhost:8004/api/docs/](http://localhost:8004/api/docs/) | [http://localhost:8004/api/redoc/](http://localhost:8004/api/redoc/) |
+| Application Service| [http://localhost:8005/api/docs/](http://localhost:8005/api/docs/) | [http://localhost:8005/api/redoc/](http://localhost:8005/api/redoc/) |
+| Reviews Service | [http://localhost:8006/api/docs/](http://localhost:8006/api/docs/) | [http://localhost:8006/api/redoc/](http://localhost:8006/api/redoc/) |
+| Chat Service | [http://localhost:8007/api/docs/](http://localhost:8007/api/docs/) | [http://localhost:8007/api/redoc/](http://localhost:8007/api/redoc/) |
+| Notification Service| [http://localhost:8008/api/docs/](http://localhost:8008/api/docs/) | [http://localhost:8008/api/redoc/](http://localhost:8008/api/redoc/) |
+
+You'll need to pass `Bearer <JWT>` in the Swagger UI Authorize button for protected endpoints.
+
+---
+
+## Platform Workflows
+
+These diagrams show the actual request flows through the system — useful for understanding how the services coordinate.
+
+### User Registration & Profile Setup
+
+When someone registers, the auth service creates the user locally, then calls the profile service to set up their profile. If the profile service is down, we roll back the user creation to avoid orphaned accounts. After that, an OTP is generated and emailed via Celery.
 
 ```mermaid
 %%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#009688', 'edgeLabelBackground':'#ffffff', 'tertiaryColor': '#f3f4f6'}}}%%
@@ -113,7 +127,7 @@ sequenceDiagram
     Auth->>Auth: Validate serializer & save Auth User (DB)
     
     rect rgb(240, 248, 255)
-        Note over Auth, Prof: Step 1: Resilient Profile Creation
+        Note over Auth, Prof: Profile creation with retry
         Auth->>Prof: POST /api/profiles/profiles/ (make_resilient_request)
         alt Profile Success
             Prof-->>Auth: 201 Created (Profile DB record saved)
@@ -126,7 +140,7 @@ sequenceDiagram
     end
 
     rect rgb(255, 240, 245)
-        Note over Auth, Prof: Step 2: Resilient OTP Request
+        Note over Auth, Prof: OTP request with retry
         Auth->>Prof: POST /api/profiles/otp/request_otp/ (make_resilient_request)
         Prof->>Prof: Generate 6-digit OTP code
         Prof->>Prof: Hash code using make_password (PBKDF2)
@@ -141,8 +155,9 @@ sequenceDiagram
     Cel-->>User: Send Plaintext Email containing 6-digit OTP
 ```
 
-### B. OTP Code Verification Flow
-Before users can log in, they must verify their email by submitting the 6-digit code. To prevent brute-force attacks on the short code space, the system tracks attempts in Redis and locks the user out after 5 failures.
+### OTP Verification
+
+Before logging in, users must verify their email with the 6-digit code. There's a brute-force lockout after 5 failed attempts — since the code space is small (6 digits), we need to rate-limit guesses.
 
 ```mermaid
 %%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#3b82f6', 'primaryTextColor': '#ffffff', 'lineColor': '#2563eb'}}}%%
@@ -164,8 +179,9 @@ flowchart TD
     CheckMax -- No --> FailAttempt[Return 400: Invalid or expired OTP]
 ```
 
-### C. Login & JWT Issuance Flow
-When a user attempts to log in, the `auth_service` checks SimpleJWT credentials and makes a resilient request to the `profile_service` to check email verification status before issuing tokens.
+### Login & JWT Issuance
+
+The auth service validates credentials with SimpleJWT, then checks with the profile service whether the email is verified before handing out tokens.
 
 ```mermaid
 %%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#8b5cf6', 'tertiaryColor': '#f3f4f6'}}}%%
@@ -197,8 +213,9 @@ sequenceDiagram
     end
 ```
 
-### D. Rental Application Submission & Review Lookup
-The platform allows applicants to apply for listings. The Application service coordinates building verification and reviews to build the context.
+### Rental Application Flow
+
+When fetching an application, the application service fans out to listings, building, and profile services in parallel to assemble the full picture.
 
 ```mermaid
 %%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#f59e0b', 'tertiaryColor': '#fef3c7'}}}%%
@@ -232,96 +249,76 @@ sequenceDiagram
 
 ---
 
-## 3. Platform Configuration & Running
+## Getting Started
 
 ### Prerequisites
-* Docker & Docker Compose installed on your system.
+- Docker & Docker Compose installed.
 
-### Running Internals
-1. **Clone the Repository** and navigate to the project directory:
+### Setup
+1. Clone the repo and `cd` into it:
    ```bash
    cd Rental_mvc_project
    ```
 
-2. **Configure Environment Variables**:
-   Create a root `.env` file using the template provided:
+2. Create your `.env` from the template:
    ```bash
    cp .env.example .env
    ```
-   Provide values for critical variables (e.g., `DB_PASSWORD`, `JWT_SECRET_KEY`, `EMAIL_HOST_PASSWORD`, etc.).
+   Fill in `DB_PASSWORD`, `JWT_SECRET_KEY`, `EMAIL_HOST_PASSWORD`, and any other blanks.
 
-3. **Build and Run the System**:
-   Start all microservices and dependencies in the background:
+3. Build and start everything:
    ```bash
    docker compose up -d --build
    ```
 
-4. **Access the Services**:
-   * **API Gateway**: `http://localhost:8000/`
-   * **Frontend**: `http://localhost:5174/`
-   * **Nginx Gateway Health**: `http://localhost:8000/health/`
+4. Access points:
+   - **API Gateway**: `http://localhost:8000/`
+   - **Frontend**: `http://localhost:5174/`
+   - **Health Check**: `http://localhost:8000/health/`
 
 ---
 
-## 4. Key Security & Fault Tolerance Upgrades
+## Security & Fault Tolerance Notes
 
-During our latest session, we executed a complete configuration refactor to align the microservices architecture with production-level security and resilience standards:
+These are changes made during development that are worth knowing about:
 
-### 🛡️ Credential & Secrets Migration
-* **Vulnerability**: JWT keys, database passwords, and SMTP secrets were hardcoded in code settings and compose files.
-* **Resolution**: Migrated all secrets to environment variables (`os.environ.get`) loaded from the unified `.env`. Added strict startup validations using Django's `ImproperlyConfigured` exception to fail fast if required secrets are absent.
+### Secrets handling
+All secrets (JWT keys, DB passwords, SMTP creds) used to be hardcoded in settings files. They've been moved to environment variables loaded from `.env`. Each service validates on startup that its required secrets are present — if something's missing, Django raises `ImproperlyConfigured` and the container fails immediately rather than running in a broken state.
 
-### 🔐 OTP Hash Security Upgrade (Salted PBKDF2)
-* **Vulnerability**: OTP codes were previously hashed using standard, fast `SHA-256` which made them vulnerable to lookup/rainbow-table attacks on Redis memory dumps.
-* **Resolution**: Replaced SHA-256 with Django's native `make_password` and `check_password` utility functions. This enforces salted **PBKDF2 hashing** on the 6-digit codes. Added brute-force tracking (lockout after 5 failed attempts) and immediate deletion of keys upon success/lockout.
+### OTP hashing
+OTPs were originally hashed with plain SHA-256. The problem is that a 6-digit code has only a million possibilities, so SHA-256 hashes are trivially reversible with a lookup table. We switched to Django's `make_password`/`check_password` which uses PBKDF2 with a random salt. Combined with the 5-attempt lockout and automatic key deletion, this makes brute-forcing impractical.
 
-### 🔗 Resilient Inter-Service REST Calls (Tenacity)
-* **Vulnerability**: Direct, un-timeouted calls caused calling thread hangs when target services went offline, failing the entire registration flow.
-* **Resolution**:
-  * Established a centralized resilience library at `shared_lib/resilience.py` mounted as a volume across all microservice containers to eliminate code duplication.
-  * Configured retry actions with **exponential backoff** (`multiplier=1`, `min=1`, `max=10`).
-  * Filtered retries so they only trigger on transient failures (ConnectionError, Timeout, and HTTP `429`, `500`, `502`, `503`, and `504` status codes).
-  * Added request duration tracking (`time.time() - start_time`) and custom stdout stream logs (e.g. `[INFO] resilience - Request to profile_service succeeded. Status: 201, Duration: 0.25s`).
-  * Enforced fast timeout constraints (`timeout=2`, `max_attempts=2`) for authentication requests to prevent bad user experiences.
-  * Designed explicit, graceful `503 Service Unavailable` JSON responses (`{"message": "<Service Name> temporarily unavailable"}`) upon connection failures.
+### Inter-service resilience
+When one service calls another over HTTP, there's always a chance the target is down or slow. Without timeouts, the calling thread just hangs forever. We added a shared resilience library (`shared_lib/resilience.py`) that wraps `requests` calls with Tenacity retry logic — exponential backoff, filtered retries (only on `ConnectionError`, `Timeout`, and 5xx responses), and strict timeout constraints. If retries are exhausted, the caller returns a clean `503` response instead of crashing.
 
 ---
 
-## 5. Recent Issues & Resolutions
+## Known Issues & Fixes
 
-During the development and testing of complex microservice interactions, several critical bugs were identified and resolved:
+Some bugs we hit during development that were tricky to debug:
 
-### 1. Agent Application Visibility (Data Siloing)
-* **Issue**: Agents logging into their dashboard were unable to see applications submitted by renters for their properties.
-* **Root Cause**: The `application_service` was overriding the `get_queryset` strictly checking if the user was the "owner" of the application, rather than checking if the user was the agent of the unit the application was tied to.
-* **Fix**: Rewrote the application query logic to execute a cross-service check to the `listings_service`, fetching all units owned by the agent, and filtering the application list to match those units.
+### Agent couldn't see applications for their properties
+The application queryset was filtering by `user == application.owner`, but agents aren't the "owner" of an application — the renter is. Fixed it to look up the agent's units from the listings service, then filter applications by those unit IDs.
 
-### 2. Missing Profile IDs on Application Creation (Microservice Desync)
-* **Issue**: Creating new rental applications failed because the `profile_id` was missing.
-* **Root Cause**: The `auth_service` and `profile_service` UUIDs became desynchronized. The `profile_service` was ignoring the `auth_service` UUID during profile creation and generating its own random UUID.
-* **Fix**: Updated the `ProfileCreateUpdateSerializer` to explicitly accept and enforce the Auth UUID. Re-synced existing user profiles to ensure `Auth.id == Profile.id`.
+### Profile IDs were out of sync
+The profile service was ignoring the UUID sent from auth and generating its own. This meant `Auth.id != Profile.id`, which broke cross-service lookups. Fixed the serializer to accept and use the auth-provided UUID.
 
-### 3. Chat UI Message Ordering (Upside-Down Messages)
-* **Issue**: Messages in the chat window were appearing upside down and overlapping awkwardly.
-* **Root Cause**: The `chat_service` REST API was returning messages chronologically oldest-first, and the frontend was appending them in reverse.
-* **Fix**: Added explicit `-created_at` ordering to the backend API view to guarantee a consistent timeline, and updated the React `flex-col` logic to render them top-to-bottom.
+### Chat messages showing up upside down
+The API was returning messages oldest-first, but the frontend was prepending them. Fixed the API to return `-created_at` ordering and adjusted the React flex layout.
 
-### 4. Real-Time Chat Double Messages (Race Condition)
-* **Issue**: When a user sent a message, it appeared on their screen twice instantly.
-* **Root Cause**: A race condition where the ultra-fast Redis WebSocket `receive_message` broadcast beat the REST API `POST` success response. Both systems blindly appended the message to the React state.
-* **Fix**: Implemented a duplicate ID check within the frontend's REST API promise handler to ensure a message is only appended if the WebSocket hasn't already rendered it.
+### Double messages in chat
+A race condition — the WebSocket broadcast was faster than the REST API response, so the frontend would add the message from the WebSocket, then add it again from the API callback. Added a duplicate ID check in the frontend's API handler.
 
-### 5. Chat Offline Presence Bug (Initial State Sync)
-* **Issue**: Users were appearing "Offline" even when they were actively staring at the chat screen.
-* **Root Cause**: While the system correctly broadcasted a `user_online` event *when* someone connected, it failed to tell newly connected users the status of people who were *already* in the room.
-* **Fix**: Updated the Django Channels `chat_consumer.py` to synchronously query Redis for the other participant's presence status during the initial connection handshake, passing `other_user_online` directly into the frontend's initial state.
+### Users showing as offline when they were online
+The WebSocket consumer was broadcasting `user_online` when someone connected, but it never told newly-connecting users about people already in the room. Fixed by querying Redis for the other participant's presence during the connection handshake.
 
 ---
 
-## 🚀 Performance & Scalability (Benchmarked)
-A comprehensive performance suite was engineered to benchmark the entire microservices architecture locally using Docker Compose. For the full dataset, see [PERFORMANCE_REPORT.md](PERFORMANCE_REPORT.md).
+## Performance (Benchmarked)
 
-- **API Throughput (Apache Bench)**: The system handles highly concurrent REST requests efficiently, peaking at **2,282 requests/second** for cached application endpoints and sustaining **~1,100 req/sec** for complex database joins (Listings & Buildings). 
-- **WebSocket Scalability (Locust)**: Django Channels, backed by Redis pub/sub, maintained **0% failure rates** and an average response latency of **45ms** while processing 3,210 requests from **250 concurrent users**.
-- **Event-Driven Architecture (Kafka)**: Confluent Kafka pipelines easily exceeded a throughput of **14,000+ messages/sec**, ensuring that asynchronous processes (like profile generation and email notifications) never bottleneck the main HTTP request loop.
-- **Docker Optimization**: The optimized Docker Compose architecture can cold-start the entire 8-service distributed system in **105 seconds**, with subsequent warm starts completing in just **15 seconds**.
+We benchmarked the system locally using Docker Compose. Full details in [PERFORMANCE_REPORT.md](PERFORMANCE_REPORT.md).
+
+- **API Throughput**: Peaks at ~2,280 req/sec for cached endpoints, ~1,100 req/sec for complex DB joins.
+- **WebSocket**: 0% failure rate at 250 concurrent users, 45ms average latency.
+- **Kafka**: 14,000+ messages/sec producer throughput.
+- **Docker**: Cold start ~105s, warm start ~15s.
