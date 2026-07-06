@@ -14,6 +14,9 @@ class Topics:
     AUTH_USER_REGISTERED = "auth.user.registered"
     AUTH_USER_LOGGED_IN = "auth.user.logged-in"
 
+    # Profile Service Events
+    PROFILE_CREATED = "profiles.profile.created"
+
     # Listings Service Events
     LISTINGS_LISTING_CREATED = "listings.listing.created"
     LISTINGS_LISTING_UPDATED = "listings.listing.updated"
@@ -47,6 +50,7 @@ class Topics:
     ALL_TOPICS = [
         AUTH_USER_REGISTERED,
         AUTH_USER_LOGGED_IN,
+        PROFILE_CREATED,
         LISTINGS_LISTING_CREATED,
         LISTINGS_LISTING_UPDATED,
         LISTINGS_LISTING_DELETED,

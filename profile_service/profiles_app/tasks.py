@@ -12,6 +12,31 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+from shared_lib.kafka.producer import KafkaEventProducer
+from shared_lib.kafka.events import build_event
+from shared_lib.kafka.topics import Topics
+
+_kafka_producer = KafkaEventProducer()
+
+
+@shared_task(name="profiles_app.tasks.send_profile_creation_event")
+def send_profile_creation_event(
+    user_id: str, email: str, first_name: str, last_name: str
+) -> None:
+    """Publish a ProfileCreated domain event to Kafka (fire-and-forget)."""
+    event = build_event(
+        event_type="ProfileCreated",
+        aggregate_id=str(user_id),
+        source_service="profile_service",
+        payload={
+            "user_id": user_id,
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+        },
+    )
+    _kafka_producer.publish_async(Topics.PROFILE_CREATED, event, key=str(user_id))
+
 
 @shared_task(
     bind=True,

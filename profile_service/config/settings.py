@@ -86,7 +86,6 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
-
     "DEFAULT_THROTTLE_RATES": {
         "otp_request": "5/hour",  # max 5 OTP requests per IP per hour
         "otp_verify": "10/hour",  # max 10 verify attempts per IP per hour
@@ -95,7 +94,8 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:8000"
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:5174,http://localhost:8000",
 ).split(",")
 
 # Inter-service URLs

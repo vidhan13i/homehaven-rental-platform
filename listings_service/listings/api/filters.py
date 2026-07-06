@@ -3,8 +3,6 @@ from django.db.models import Q
 from listings.models import Listing, Unit, Agent
 
 
-
-
 class ListingFilter(django_filters.FilterSet):
     """
     Advanced filter for Listings.
@@ -89,9 +87,6 @@ class AvailableListingFilter(ListingFilter):
         self.queryset = self.queryset.filter(available_date__gte=timezone.now().date())
 
 
-
-
-
 class UnitFilter(django_filters.FilterSet):
     """
     Advanced filter for Units.
@@ -134,9 +129,6 @@ class UnitFilter(django_filters.FilterSet):
             | Q(unit_no__icontains=value)
             | Q(description__icontains=value)
         )
-
-
-
 
 
 class AgentFilter(django_filters.FilterSet):

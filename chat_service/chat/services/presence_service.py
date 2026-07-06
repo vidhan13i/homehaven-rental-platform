@@ -19,7 +19,6 @@ logger = logging.getLogger("chat.services.presence")
 class PresenceService:
     """Business logic for user online/offline status."""
 
-
     @staticmethod
     def set_online(user_id: str) -> None:
         """Mark a user as online (WebSocket connected)."""
@@ -46,7 +45,6 @@ class PresenceService:
     def is_online(user_id: str) -> bool:
         """Quick online check."""
         return PresenceRepository.is_online(user_id)
-
 
     @staticmethod
     async def async_set_online(user_id: str) -> None:

@@ -2,8 +2,6 @@ from rest_framework import serializers
 from listings.models import Listing, Unit, Agent, Images, AgentImages
 
 
-
-
 class AgentImageSerializer(serializers.ModelSerializer):
     """Serializer for agent profile photos / documents."""
 
@@ -93,9 +91,6 @@ class AgentCreateUpdateSerializer(serializers.ModelSerializer):
         if value is not None and len(str(value)) < 10:
             raise serializers.ValidationError("Phone number must be at least 10 digits")
         return value
-
-
-
 
 
 class UnitImageSerializer(serializers.ModelSerializer):
@@ -202,9 +197,6 @@ class UnitCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Number of bathrooms cannot be negative")
 
         return data
-
-
-
 
 
 class ListingSerializer(serializers.ModelSerializer):

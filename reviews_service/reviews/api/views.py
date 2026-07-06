@@ -129,8 +129,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         except Exception as exc:
             logger.error("Failed to publish ReviewCreated event: %s", exc)
 
-
-
     @action(detail=False, methods=["get"], url_path="by-building")
     def by_building(self, request):
         """Get all reviews for a specific building (UUID from building_service)."""
@@ -156,8 +154,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         reviews = self.get_queryset().filter(profile_ID=profile_id)
         serializer = ReviewListSerializer(reviews, many=True)
         return Response(serializer.data)
-
-
 
     @action(detail=True, methods=["get"])
     def building(self, request, pk=None):
@@ -205,8 +201,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-
-
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
         """Submit a draft/in-progress review."""
@@ -219,8 +213,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review.status = Review.Status.SUBMITTED
         review.save()
         return Response(ReviewSerializer(review).data)
-
-
 
     @action(detail=False, methods=["get"])
     def stats(self, request):

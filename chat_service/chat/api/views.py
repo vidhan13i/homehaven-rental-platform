@@ -56,7 +56,6 @@ from chat.api.pagination import ChatPagination, MessagePagination
 logger = logging.getLogger("chat.api.views")
 
 
-
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
 
 
@@ -232,8 +231,6 @@ class ConversationViewSet(viewsets.ModelViewSet):
         return Response({"unread_count": count})
 
 
-
-
 @extend_schema_view(
     list=extend_schema(summary="List Messages", tags=["Chat"]),
     retrieve=extend_schema(summary="Retrieve Message", tags=["Chat"]),
@@ -274,32 +271,32 @@ class MessageViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     def get_queryset(self):
-        """
-        Only return messages for conversations the user participates in.
-        Requires 'conversation' query param.
-        """
         user_id = str(self.request.user.id)
-        conversation_id = self.request.query_params.get("conversation")
 
-        if not conversation_id:
-            return Message.objects.none()
-
-        # Verify the user is a participant in this conversation
-        user_conversations = Conversation.objects.filter(
-            Q(owner_id=user_id) | Q(renter_id=user_id),
-            id=conversation_id,
-        )
-        if not user_conversations.exists():
-            return Message.objects.none()
-
-        return (
-            Message.objects.filter(
-                conversation_id=conversation_id,
-                deleted_at__isnull=True,
+        if self.action == "list":
+            conversation_id = self.request.query_params.get("conversation")
+            if not conversation_id:
+                return Message.objects.none()
+            user_conversations = Conversation.objects.filter(
+                Q(owner_id=user_id) | Q(renter_id=user_id),
+                id=conversation_id,
             )
-            .select_related("reply_to")
-            .order_by("-created_at")
-        )
+            if not user_conversations.exists():
+                return Message.objects.none()
+            return (
+                Message.objects.filter(
+                    conversation_id=conversation_id, deleted_at__isnull=True
+                )
+                .select_related("reply_to")
+                .order_by("-created_at")
+            )
+
+        # detail-style actions (retrieve/update/partial_update/destroy/react/forward/star):
+        # authorize via the message's own conversation, not a query param.
+        return Message.objects.filter(
+            Q(conversation__owner_id=user_id) | Q(conversation__renter_id=user_id),
+            deleted_at__isnull=True,
+        ).select_related("reply_to")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -374,7 +371,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         # notification_service consumes this to push in-app and email notifications
         try:
             # Determine the recipient (the other participant in the conversation)
-            participants = list(conversation.participants)
+            participants = [conversation.owner_id, conversation.renter_id]
             sender_id = str(request.user.id)
             recipient_id = next((p for p in participants if str(p) != sender_id), None)
             kafka_event = build_event(
@@ -537,8 +534,6 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-
-
 class PresenceView(APIView):
     """
     GET /api/chat/presence/<user_id>/
@@ -551,8 +546,6 @@ class PresenceView(APIView):
     def get(self, request, user_id: str):
         presence_data = PresenceService.get_presence(user_id)
         return Response(presence_data)
-
-
 
 
 class HealthView(APIView):

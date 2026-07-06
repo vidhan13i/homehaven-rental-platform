@@ -2,8 +2,6 @@ from rest_framework import serializers
 from building.models import Building, Images
 
 
-
-
 class BuildingImageSerializer(serializers.ModelSerializer):
     """Serializer for building photos."""
 
@@ -11,9 +9,6 @@ class BuildingImageSerializer(serializers.ModelSerializer):
         model = Images
         fields = ["id", "image", "build_ID", "created_at", "updated_at"]
         read_only_fields = ["id", "created_at", "updated_at"]
-
-
-
 
 
 class BuildingSerializer(serializers.ModelSerializer):

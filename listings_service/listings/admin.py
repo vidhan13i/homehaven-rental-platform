@@ -2,8 +2,6 @@ from django.contrib import admin
 from listings.models import Listing, Unit, Agent, Images, AgentImages
 
 
-
-
 class UnitImageInline(admin.TabularInline):
     """Show unit images directly inside the Unit admin page."""
 
@@ -34,9 +32,6 @@ class AgentImageInline(admin.TabularInline):
 
     model = AgentImages
     extra = 1
-
-
-
 
 
 @admin.register(Agent)

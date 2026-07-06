@@ -4,13 +4,17 @@ from listings.models.agent import Agent
 from django.db.utils import IntegrityError
 import uuid
 
+
 @pytest.fixture
 def agent():
     return Agent.objects.create(
-        user_id="user123",
-        contact_number="1234567890",
-        bio="Test Agent"
+        first_name="Test",
+        last_name="Agent",
+        email="agent@test.com",
+        phone_number=1234567890,
+        agent_organization="Test Realty",
     )
+
 
 @pytest.mark.django_db
 def test_unit_creation(agent):
@@ -21,10 +25,11 @@ def test_unit_creation(agent):
         no_bedrooms=2,
         no_bathrooms=1,
         agent_ID=agent,
-        building_ID=uuid.uuid4()
+        building_ID=uuid.uuid4(),
     )
     assert unit.full_address == "123 Test St"
     assert unit.is_furnished is False
+
 
 @pytest.mark.django_db
 def test_unit_constraint_furnished(agent):
@@ -36,5 +41,5 @@ def test_unit_constraint_furnished(agent):
             is_furnished=True,
             is_semi_furnished=True,
             agent_ID=agent,
-            building_ID=uuid.uuid4()
+            building_ID=uuid.uuid4(),
         )

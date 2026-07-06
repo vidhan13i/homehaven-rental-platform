@@ -39,7 +39,6 @@ from listings.api.filters import (
     AgentFilter,
 )
 
-
 # Listing views
 
 
@@ -321,9 +320,7 @@ class PublicListingDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
 
-
 # Unit views
-
 
 
 @extend_schema_view(
@@ -429,9 +426,7 @@ class UnitViewSet(viewsets.ModelViewSet):
         )
 
 
-
 # Agent views
-
 
 
 @extend_schema_view(
@@ -584,9 +579,7 @@ class AgentViewSet(viewsets.ModelViewSet):
         return Response(stats)
 
 
-
 # Image views
-
 
 
 class UnitImageViewSet(viewsets.ModelViewSet):

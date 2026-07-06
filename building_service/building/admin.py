@@ -2,8 +2,6 @@ from django.contrib import admin
 from building.models import Building, Images
 
 
-
-
 class BuildingImageInline(admin.TabularInline):
     """Show building images directly inside the Building admin page."""
 
@@ -11,9 +9,6 @@ class BuildingImageInline(admin.TabularInline):
     extra = 1
     fields = ["image", "created_at"]
     readonly_fields = ["created_at"]
-
-
-
 
 
 @admin.register(Building)

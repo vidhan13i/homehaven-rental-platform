@@ -17,7 +17,9 @@ if not JWT_SECRET_KEY:
     raise ImproperlyConfigured("JWT_SECRET_KEY environment variable is required")
 
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,gateway,reviews_service").split(",")
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1,gateway,reviews_service"
+).split(",")
 
 INSTALLED_APPS = [
     "drf_spectacular",
@@ -88,7 +90,8 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:8000"
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:5174,http://localhost:8000",
 ).split(",")
 
 # Inter-service URLs

@@ -2,16 +2,17 @@ from locust import HttpUser, task, between
 import json
 import subprocess
 
+
 class HomeHavenUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):
         # We assume benchmark_wrk is already registered and verified by run_api_benchmarks.sh
-        response = self.client.post("/api/auth/login/", json={
-            "username": "benchmark_wrk",
-            "password": "password123"
-        })
-        
+        response = self.client.post(
+            "/api/auth/login/",
+            json={"username": "benchmark_wrk", "password": "password123"},
+        )
+
         if response.status_code == 200:
             token = response.json().get("access")
             self.client.headers.update({"Authorization": f"Bearer {token}"})

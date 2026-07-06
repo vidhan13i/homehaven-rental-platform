@@ -6,7 +6,6 @@ from rest_framework import serializers
 from chat.models import Conversation, Message, Presence
 
 
-
 class ReplyToSerializer(serializers.ModelSerializer):
     """Minimal serializer for the replied-to message (nested in MessageSerializer)."""
 
@@ -150,8 +149,6 @@ class ReactionSerializer(serializers.Serializer):
     emoji = serializers.CharField(max_length=10)
 
 
-
-
 class ConversationSerializer(serializers.ModelSerializer):
     """Full conversation serializer."""
 
@@ -228,8 +225,6 @@ class ConversationCreateSerializer(serializers.Serializer):
                 "owner_id and renter_id cannot be the same user"
             )
         return data
-
-
 
 
 class PresenceSerializer(serializers.ModelSerializer):

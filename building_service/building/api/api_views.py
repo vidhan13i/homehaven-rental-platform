@@ -109,8 +109,6 @@ class BuildingViewSet(viewsets.ModelViewSet):
             return BuildingNearbySerializer
         return BuildingSerializer
 
-
-
     @action(detail=False, methods=["get"])
     def stats(self, request):
         """

@@ -68,7 +68,6 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-
         try:
             url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/profiles/"
             profile_payload = {
@@ -104,7 +103,6 @@ class RegisterView(generics.CreateAPIView):
                 {"message": "Profile service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-
 
         try:
             otp_url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/otp/request_otp/"
@@ -166,7 +164,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
 
         data = super().validate(attrs)
-
 
         email = self.user.email
         try:

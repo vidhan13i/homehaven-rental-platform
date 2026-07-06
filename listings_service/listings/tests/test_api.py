@@ -5,17 +5,22 @@ from listings.models.agent import Agent
 from unittest.mock import patch
 import uuid
 
+
 @pytest.fixture
 def api_client():
     return APIClient()
 
+
 @pytest.fixture
 def agent():
     return Agent.objects.create(
-        user_id="user123",
-        contact_number="1234567890",
-        bio="Test Agent"
+        first_name="Test",
+        last_name="Agent",
+        email="agent@test.com",
+        phone_number=1234567890,
+        agent_organization="Test Realty",
     )
+
 
 @pytest.mark.django_db
 def test_list_units(api_client, agent):
@@ -26,13 +31,14 @@ def test_list_units(api_client, agent):
         no_bedrooms=2,
         no_bathrooms=1,
         agent_ID=agent,
-        building_ID=uuid.uuid4()
+        building_ID=uuid.uuid4(),
     )
-    
+
     response = api_client.get("/listings/units/")
     assert response.status_code == 200
     assert len(response.data["results"]) == 1
     assert response.data["results"][0]["full_address"] == "123 Test St"
+
 
 @pytest.mark.django_db
 def test_create_unit(api_client, agent):
@@ -43,11 +49,15 @@ def test_create_unit(api_client, agent):
         "no_bedrooms": 3,
         "no_bathrooms": 2,
         "agent_ID": str(agent.id),
-        "building_ID": str(uuid.uuid4())
+        "building_ID": str(uuid.uuid4()),
     }
-    
-    with patch('rest_framework.permissions.IsAuthenticated.has_permission', return_value=True), \
-         patch('common.authentication.JWTAuthentication.authenticate', return_value=(type('User', (), {'id': 'user123'})(), None)):
+
+    with patch(
+        "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
+    ), patch(
+        "common.authentication.JWTAuthentication.authenticate",
+        return_value=(type("User", (), {"id": "user123"})(), None),
+    ):
         response = api_client.post("/listings/units/", payload, format="json")
         assert response.status_code == 201
         assert response.data["full_address"] == "456 New St"

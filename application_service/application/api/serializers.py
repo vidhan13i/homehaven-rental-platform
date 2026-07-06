@@ -2,8 +2,6 @@ from rest_framework import serializers
 from application.models import Application, Applicant, Document
 
 
-
-
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
@@ -16,9 +14,6 @@ class DocumentSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
-
-
-
 
 
 class ApplicantSerializer(serializers.ModelSerializer):
@@ -107,9 +102,6 @@ class ApplicantCreateUpdateSerializer(serializers.ModelSerializer):
         if value is not None and value < 0:
             raise serializers.ValidationError("Income cannot be negative")
         return value
-
-
-
 
 
 class ApplicationSerializer(serializers.ModelSerializer):

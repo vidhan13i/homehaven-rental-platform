@@ -39,7 +39,6 @@ class BuildingFilter(django_filters.FilterSet):
         field_name="review_count", lookup_expr="gte"
     )
 
-
     lat_min = django_filters.NumberFilter(field_name="latitude", lookup_expr="gte")
     lat_max = django_filters.NumberFilter(field_name="latitude", lookup_expr="lte")
     lng_min = django_filters.NumberFilter(field_name="longitude", lookup_expr="gte")
