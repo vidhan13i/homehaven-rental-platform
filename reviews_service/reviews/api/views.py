@@ -129,7 +129,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         except Exception as exc:
             logger.error("Failed to publish ReviewCreated event: %s", exc)
 
-    # ── Lookup endpoints ───────────────────────────────────────────────────
+
 
     @action(detail=False, methods=["get"], url_path="by-building")
     def by_building(self, request):
@@ -157,7 +157,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer = ReviewListSerializer(reviews, many=True)
         return Response(serializer.data)
 
-    # ── Inter-service calls ────────────────────────────────────────────────
+
 
     @action(detail=True, methods=["get"])
     def building(self, request, pk=None):
@@ -205,7 +205,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-    # ── Workflow ───────────────────────────────────────────────────────────
+
 
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
@@ -220,7 +220,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review.save()
         return Response(ReviewSerializer(review).data)
 
-    # ── Analytics ──────────────────────────────────────────────────────────
+
 
     @action(detail=False, methods=["get"])
     def stats(self, request):

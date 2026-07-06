@@ -88,7 +88,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# ─── INTER-SERVICE URLs ──────────────────────────────────────────────────────
+# Inter-service URLs
 BUILDING_SERVICE_URL = os.environ.get(
     "BUILDING_SERVICE_URL", "http://building_service:8000"
 )
@@ -96,7 +96,7 @@ PROFILE_SERVICE_URL = os.environ.get(
     "PROFILE_SERVICE_URL", "http://profile_service:8000"
 )
 
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
+# Database
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5433")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -144,7 +144,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
+# DRF Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "Reviews Service API",
     "DESCRIPTION": """Aggregates crowdsourced property ratings and tenant feedback.""",

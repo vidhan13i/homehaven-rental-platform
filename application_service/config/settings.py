@@ -88,7 +88,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# ─── INTER-SERVICE URLs ──────────────────────────────────────────────────────
+# Inter-service URLs
 LISTINGS_SERVICE_URL = os.environ.get(
     "LISTINGS_SERVICE_URL", "http://listings_service:8000"
 )
@@ -99,7 +99,7 @@ PROFILE_SERVICE_URL = os.environ.get(
     "PROFILE_SERVICE_URL", "http://profile_service:8000"
 )
 
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
+# Database
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5433")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -147,7 +147,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
+# DRF Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "Application Service API",
     "DESCRIPTION": """Handles creation and approval flow of rental applications and documents.""",

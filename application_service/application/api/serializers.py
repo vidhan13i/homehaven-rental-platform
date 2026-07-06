@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from application.models import Application, Applicant, Document
 
-# ─── DOCUMENT SERIALIZERS ─────────────────────────────────────────────────────
+
 
 
 class DocumentSerializer(serializers.ModelSerializer):
@@ -18,7 +18,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
-# ─── APPLICANT SERIALIZERS ────────────────────────────────────────────────────
+
 
 
 class ApplicantSerializer(serializers.ModelSerializer):
@@ -109,7 +109,7 @@ class ApplicantCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
 
-# ─── APPLICATION SERIALIZERS ──────────────────────────────────────────────────
+
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
