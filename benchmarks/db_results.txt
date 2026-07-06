@@ -1,5 +1,29 @@
 Listings Query:
+                                                             QUERY PLAN                                                             
+------------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using listings_unit_pkey on listings_unit  (cost=0.28..8.29 rows=1 width=173) (actual time=0.063..0.077 rows=0 loops=1)
+   Index Cond: (id = '123e4567-e89b-12d3-a456-426614174000'::uuid)
+ Planning Time: 3.054 ms
+ Execution Time: 0.220 ms
+(4 rows)
+
 
 Profile Query:
+                                                   QUERY PLAN                                                   
+----------------------------------------------------------------------------------------------------------------
+ Seq Scan on profiles_app_profile  (cost=0.00..3.25 rows=1 width=105) (actual time=0.034..0.037 rows=0 loops=1)
+   Filter: ((email)::text = 'test@example.com'::text)
+   Rows Removed by Filter: 100
+ Planning Time: 0.373 ms
+ Execution Time: 0.061 ms
+(5 rows)
+
 
 Notification Query:
+                                                      QUERY PLAN                                                      
+----------------------------------------------------------------------------------------------------------------------
+ Seq Scan on notification_preferences  (cost=0.00..19.00 rows=900 width=62) (actual time=0.003..0.008 rows=0 loops=1)
+ Planning Time: 1.261 ms
+ Execution Time: 0.028 ms
+(3 rows)
+
