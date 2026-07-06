@@ -10,40 +10,40 @@ to prevent typos and enable IDE refactoring support.
 
 
 class Topics:
-    # ── Auth Service Events ───────────────────────────────────────────────────
+    # Auth Service Events
     AUTH_USER_REGISTERED = "auth.user.registered"
     AUTH_USER_LOGGED_IN = "auth.user.logged-in"
 
-    # ── Listings Service Events ───────────────────────────────────────────────
+    # Listings Service Events
     LISTINGS_LISTING_CREATED = "listings.listing.created"
     LISTINGS_LISTING_UPDATED = "listings.listing.updated"
     LISTINGS_LISTING_DELETED = "listings.listing.deleted"
 
-    # ── Application Service Events ────────────────────────────────────────────
+    # Application Service Events
     APPLICATIONS_CREATED = "applications.application.created"
     APPLICATIONS_APPROVED = "applications.application.approved"
     APPLICATIONS_REJECTED = "applications.application.rejected"
     APPLICATIONS_SUBMITTED = "applications.application.submitted"
 
-    # ── Chat Service Events ───────────────────────────────────────────────────
+    # Chat Service Events
     CHAT_MESSAGE_SENT = "chat.message.sent"
     CHAT_MESSAGE_DELIVERED = "chat.message.delivered"
     CHAT_MESSAGE_SEEN = "chat.message.seen"
     CHAT_CONVERSATION_CREATED = "chat.conversation.created"
 
-    # ── Reviews Service Events ────────────────────────────────────────────────
+    # Reviews Service Events
     REVIEWS_REVIEW_CREATED = "reviews.review.created"
     REVIEWS_REVIEW_UPDATED = "reviews.review.updated"
     REVIEWS_REVIEW_DELETED = "reviews.review.deleted"
 
-    # ── Notification Service Events ───────────────────────────────────────────
+    # Notification Service Events
     NOTIFICATIONS_CREATED = "notifications.notification.created"
     NOTIFICATIONS_READ = "notifications.notification.read"
 
-    # ── Dead Letter Queue ─────────────────────────────────────────────────────
+    # Dead Letter Queue
     DLQ = "dlq.events"
 
-    # ── All Topics (for admin/monitoring) ────────────────────────────────────
+    # All Topics (for admin/monitoring)
     ALL_TOPICS = [
         AUTH_USER_REGISTERED,
         AUTH_USER_LOGGED_IN,
