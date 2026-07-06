@@ -12,7 +12,7 @@ from notification.api.serializers import (
 )
 
 
-class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+class NotificationViewSet(viewsets.ModelViewSet):
     """
     Read-only CRUD for notifications (created only by Kafka consumers).
     Plus custom actions for mark-read, archive, and delete.

@@ -22,7 +22,7 @@ def agent():
     )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "listings"])
 def test_list_units(api_client, agent):
     Unit.objects.create(
         full_address="123 Test St",
@@ -40,7 +40,7 @@ def test_list_units(api_client, agent):
     assert response.data["results"][0]["full_address"] == "123 Test St"
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "listings"])
 def test_create_unit(api_client, agent):
     payload = {
         "full_address": "456 New St",

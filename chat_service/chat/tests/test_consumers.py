@@ -49,6 +49,7 @@ def _create_conversation(owner_id: str, renter_id: str) -> Conversation:
 
 
 @override_settings(
+    DEBUG=True,
     JWT_SECRET_KEY=TEST_JWT_SECRET,
     CHANNEL_LAYERS={
         "default": {

@@ -19,4 +19,4 @@ def test_send_profile_creation_event():
             first_name="John",
             last_name="Doe",
         )
-        mock_producer_class.return_value.publish.assert_called_once()
+        mock_producer_class.return_value.publish_async.assert_called_once()

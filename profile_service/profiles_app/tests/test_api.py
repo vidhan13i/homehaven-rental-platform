@@ -9,7 +9,7 @@ def api_client():
     return APIClient()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "profiles_app"])
 @patch("profiles_app.tasks.send_profile_creation_event")
 def test_create_profile(mock_send_event, api_client):
     payload = {
@@ -26,7 +26,7 @@ def test_create_profile(mock_send_event, api_client):
     with patch(
         "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
     ), patch(
-        "common.authentication.JWTAuthentication.authenticate",
+        "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": "user123"})(), None),
     ):
         response = api_client.post("/profile/create/", payload, format="json")
@@ -35,7 +35,7 @@ def test_create_profile(mock_send_event, api_client):
         mock_send_event.delay.assert_called_once()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "profiles_app"])
 def test_get_profile(api_client):
     profile = Profile.objects.create(
         userID="user123",
@@ -49,7 +49,7 @@ def test_get_profile(api_client):
     with patch(
         "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
     ), patch(
-        "common.authentication.JWTAuthentication.authenticate",
+        "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": "user123"})(), None),
     ):
         response = api_client.get(f"/profile/{profile.userID}/")

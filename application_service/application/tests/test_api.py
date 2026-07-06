@@ -28,7 +28,7 @@ def applicant():
     )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "application"])
 @patch("shared_lib.kafka.producer.KafkaEventProducer.publish")
 def test_create_application(mock_publish, api_client, applicant):
     payload = {
@@ -54,7 +54,7 @@ def test_create_application(mock_publish, api_client, applicant):
         assert kwargs["event_type"] == "ApplicationCreated"
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "application"])
 def test_get_applications(api_client, applicant):
     Application.objects.create(
         unit_ID=uuid.uuid4(),

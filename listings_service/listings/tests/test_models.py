@@ -16,7 +16,7 @@ def agent():
     )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "listings"])
 def test_unit_creation(agent):
     unit = Unit.objects.create(
         full_address="123 Test St",
@@ -31,7 +31,7 @@ def test_unit_creation(agent):
     assert unit.is_furnished is False
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "listings"])
 def test_unit_constraint_furnished(agent):
     with pytest.raises(IntegrityError):
         Unit.objects.create(

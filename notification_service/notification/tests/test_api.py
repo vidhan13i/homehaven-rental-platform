@@ -10,7 +10,7 @@ def api_client():
     return APIClient()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "notification"])
 def test_create_notification(api_client):
     payload = {
         "title": "Test Alert",
@@ -29,7 +29,7 @@ def test_create_notification(api_client):
         assert response.data["title"] == "Test Alert"
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(databases=["default", "notification"])
 def test_get_notifications(api_client):
     Notification.objects.create(
         recipient_id=uuid.uuid4(),
