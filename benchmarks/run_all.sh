@@ -16,8 +16,8 @@ docker exec haven_kafka kafka-producer-perf-test --topic benchmark_events --num-
 echo "================================"
 echo "    DATABASE EXPLAIN ANALYZE    "
 echo "================================"
-# Run inside the postgres container
-docker exec haven_db psql -U postgres -d rental_db -f /benchmarks/db_profiler.sql > benchmarks/db_results.txt || echo "DB Profile Skipped (volume missing?)"
+# Use the dedicated DB profiler script
+./benchmarks/run_db_profiler.sh > benchmarks/db_results.txt 2>&1 || echo "DB Profile Failed"
 
 echo "================================"
 echo "    LOCUST WEBSOCKET / HTTP     "

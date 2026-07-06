@@ -19,17 +19,26 @@ run_wrk() {
     echo "------------------------------------------"
     echo "Benchmarking: $NAME ($ENDPOINT)"
     echo "------------------------------------------"
-    # Using williamyeh/wrk since it's reliable for docker-based wrk
-    docker run --rm williamyeh/wrk -t$THREADS -c$CONCURRENCY -d$DURATION "$GATEWAY_URL$ENDPOINT"
+    
+    # Auto-detect the rental_network name
+    NETWORK=$(docker network ls --format '{{.Name}}' | grep "rental_network" | head -n 1)
+    
+    if [ -n "$NETWORK" ]; then
+        # Run wrk inside the docker network, pointing directly to the gateway container
+        docker run --rm --network "$NETWORK" alpine sh -c "apk add --no-cache wrk > /dev/null && wrk -t$THREADS -c$CONCURRENCY -d$DURATION http://gateway:80$ENDPOINT" 2>&1
+    else
+        # Fallback if network not found
+        docker run --rm alpine sh -c "apk add --no-cache wrk > /dev/null && wrk -t$THREADS -c$CONCURRENCY -d$DURATION $GATEWAY_URL$ENDPOINT" 2>&1
+    fi
     echo ""
 }
 
 # Endpoints to benchmark
-run_wrk "/auth/register/" "Auth - Register"
-run_wrk "/auth/login/" "Auth - Login"
-run_wrk "/listings/units/" "Listings - Get Units"
-run_wrk "/buildings/api/" "Buildings - Get Buildings"
-run_wrk "/applications/api/" "Applications - Get Applications"
-run_wrk "/notifications/api/" "Notifications - Get Alerts"
+run_wrk "/api/auth/register/" "Auth - Register"
+run_wrk "/api/auth/login/" "Auth - Login"
+run_wrk "/api/listings/units/" "Listings - Get Units"
+run_wrk "/api/buildings/api/" "Buildings - Get Buildings"
+run_wrk "/api/applications/api/" "Applications - Get Applications"
+run_wrk "/api/notifications/api/" "Notifications - Get Alerts"
 
 echo "Benchmarks complete!"
