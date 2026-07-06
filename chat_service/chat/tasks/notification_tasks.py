@@ -50,7 +50,6 @@ def notify_offline_user(
     )
 
     try:
-        # ── Step 1: Verify message still exists and wasn't deleted ──────────
         from chat.repositories import MessageRepository
 
         message = MessageRepository.get_by_id(message_id)
@@ -61,14 +60,12 @@ def notify_offline_user(
             )
             return {"status": "skipped", "reason": "message deleted"}
 
-        # ── Step 2: Check if user came online in the meantime ───────────────
         from chat.services import PresenceService
 
         if PresenceService.is_online(recipient_id):
             logger.info("Skipping notification: user %s is now online", recipient_id)
             return {"status": "skipped", "reason": "user online"}
 
-        # ── Step 3: Deliver notification ─────────────────────────────────────
         # TODO: Implement email, push notification, SMS delivery here.
         # The architecture is ready — just swap the log line below with:
         #   send_email_notification(recipient_id, preview, sender_username)

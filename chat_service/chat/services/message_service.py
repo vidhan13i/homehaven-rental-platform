@@ -202,7 +202,6 @@ class MessageService:
             return []
         return MessageRepository.search(conversation_id, query)
 
-    # ── Async wrappers for the WebSocket consumer ─────────────────────────────
 
     @staticmethod
     async def async_send_message(

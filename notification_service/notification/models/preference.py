@@ -28,7 +28,6 @@ class NotificationPreference(models.Model):
         help_text="Auth user UUID — one preference row per user.",
     )
 
-    # ── In-App Notifications ───────────────────────────────────────────────
     inapp_enabled = models.BooleanField(default=True)
     inapp_messages = models.BooleanField(default=True)
     inapp_applications = models.BooleanField(default=True)
@@ -36,7 +35,6 @@ class NotificationPreference(models.Model):
     inapp_listings = models.BooleanField(default=True)
     inapp_system = models.BooleanField(default=True)
 
-    # ── Email Notifications ────────────────────────────────────────────────
     email_enabled = models.BooleanField(default=True)
     email_messages = models.BooleanField(default=True)
     email_applications = models.BooleanField(default=True)
@@ -44,13 +42,11 @@ class NotificationPreference(models.Model):
     email_listings = models.BooleanField(default=True)
     email_system = models.BooleanField(default=True)
 
-    # ── Push Notifications (interface ready, not yet implemented) ──────────
     push_enabled = models.BooleanField(
         default=False,
         help_text="Push notifications — interface ready, implementation pending.",
     )
 
-    # ── SMS (interface ready, not yet implemented) ─────────────────────────
     sms_enabled = models.BooleanField(
         default=False,
         help_text="SMS notifications — interface ready, implementation pending.",

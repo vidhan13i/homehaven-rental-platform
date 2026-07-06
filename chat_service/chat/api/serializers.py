@@ -5,7 +5,6 @@ Serializers for chat_service REST API.
 from rest_framework import serializers
 from chat.models import Conversation, Message, Presence
 
-# ─── Message Serializers ──────────────────────────────────────────────────────
 
 
 class ReplyToSerializer(serializers.ModelSerializer):
@@ -151,7 +150,6 @@ class ReactionSerializer(serializers.Serializer):
     emoji = serializers.CharField(max_length=10)
 
 
-# ─── Conversation Serializers ─────────────────────────────────────────────────
 
 
 class ConversationSerializer(serializers.ModelSerializer):
@@ -232,7 +230,6 @@ class ConversationCreateSerializer(serializers.Serializer):
         return data
 
 
-# ─── Presence Serializer ──────────────────────────────────────────────────────
 
 
 class PresenceSerializer(serializers.ModelSerializer):

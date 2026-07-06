@@ -67,9 +67,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
       websocket_disconnect → leave group → set offline → broadcast
     """
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Connection lifecycle
-    # ──────────────────────────────────────────────────────────────────────────
 
     async def websocket_connect(self, message: dict) -> None:
         """
@@ -81,7 +79,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.user = None
         self.conversation = None
 
-        # ── Step 1: Authenticate ──────────────────────────────────────────────
         token = extract_token_from_scope(self.scope)
         user = authenticate_websocket_token(token)
 
@@ -95,7 +92,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         self.user = user
 
-        # ── Step 2: Authorize (must be conversation participant) ───────────────
         allowed, conversation = await PermissionService.async_can_access_conversation(
             user_id=str(self.user.id),
             conversation_id=self.conversation_id,
@@ -112,7 +108,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         self.conversation = conversation
 
-        # ── Step 3: Check if conversation is blocked ───────────────────────────
         if conversation.is_blocked:
             logger.info(
                 "WebSocket for blocked conversation %s accepted (read-only mode)",
@@ -120,13 +115,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
             # Still allow connection but message sending will be rejected by service
 
-        # ── Step 4: Join Channel Layer group ──────────────────────────────────
         await self.channel_layer.group_add(self.group_name, self.channel_name)
 
-        # ── Step 5: Accept the WebSocket connection ────────────────────────────
         await self.accept()
 
-        # ── Step 6: Mark user as online ───────────────────────────────────────
         await PresenceService.async_set_online(str(self.user.id))
 
         logger.info(
@@ -136,7 +128,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name,
         )
 
-        # ── Step 7: Broadcast user_online to conversation group ───────────────
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -146,7 +137,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             },
         )
 
-        # ── Step 8: Send connection confirmation to THIS client only ──────────
         other_user_id = (
             str(self.conversation.renter_id)
             if str(self.user.id) == str(self.conversation.owner_id)
@@ -197,9 +187,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             close_code,
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Receive: client → server
-    # ──────────────────────────────────────────────────────────────────────────
 
     async def receive(self, text_data: str = None, bytes_data: bytes = None) -> None:
         """
@@ -233,9 +221,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             await self._send_error(f"Unknown event type: {event_type!r}")
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Handlers: process client events
-    # ──────────────────────────────────────────────────────────────────────────
 
     async def _handle_send_message(self, data: dict) -> None:
         """Handle a send_message event from the client."""
@@ -345,11 +331,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Broadcast handlers: channel layer → WebSocket
     # These are called by the Channel Layer when group_send fires.
     # Method names MUST match the "type" field in group_send (dots → underscores).
-    # ──────────────────────────────────────────────────────────────────────────
 
     async def broadcast_receive_message(self, event: dict) -> None:
         """Forward a new message to this WebSocket client."""
@@ -446,9 +430,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
     # Helpers
-    # ──────────────────────────────────────────────────────────────────────────
 
     async def _send_error(self, detail: str) -> None:
         """Send an error message to this client only."""

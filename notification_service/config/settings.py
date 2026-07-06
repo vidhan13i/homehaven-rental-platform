@@ -16,7 +16,6 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─── SECURITY ─────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise ImproperlyConfigured("SECRET_KEY environment variable is required")
@@ -28,7 +27,6 @@ if not JWT_SECRET_KEY:
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
-# ─── INSTALLED APPS ───────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     "drf_spectacular",
     "django.contrib.admin",
@@ -44,7 +42,6 @@ INSTALLED_APPS = [
     "notification.apps.NotificationConfig",
 ]
 
-# ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -73,12 +70,10 @@ TEMPLATES = [
     },
 ]
 
-# ─── ASGI / WSGI ─────────────────────────────────────────────────────────────
 # Daphne runs the ASGI server; handles HTTP and WebSocket concurrently.
 ASGI_APPLICATION = "config.asgi.application"
 WSGI_APPLICATION = "config.wsgi.application"
 
-# ─── CHANNEL LAYERS (Redis pub/sub for WebSocket push) ────────────────────────
 # Uses Redis DB 4 — distinct from chat_service (DB 3), Celery (DB 1/2), cache (DB 0)
 CHANNEL_LAYERS_REDIS_URL = os.environ.get(
     "CHANNEL_LAYERS_REDIS_URL", "redis://redis:6379/4"
@@ -94,7 +89,6 @@ CHANNEL_LAYERS = {
     },
 }
 
-# ─── REST FRAMEWORK ───────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -115,7 +109,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# ─── CORS ─────────────────────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 CORS_ALLOW_HEADERS = [
@@ -130,7 +123,6 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
 DB_HOST = os.environ.get("DB_HOST", "db")
 DB_PORT = os.environ.get("DB_PORT", "5432")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -160,7 +152,6 @@ DATABASES = {
 
 DATABASE_ROUTERS = ["config.db_router.NotificationRouter"]
 
-# ─── REDIS CACHE ──────────────────────────────────────────────────────────────
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
 CACHES = {
@@ -175,7 +166,6 @@ CACHES = {
     }
 }
 
-# ─── CELERY ───────────────────────────────────────────────────────────────────
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/1")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/2")
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -191,12 +181,10 @@ CELERY_TASK_QUEUES = {
     "email_delivery": {},
 }
 
-# ─── KAFKA ────────────────────────────────────────────────────────────────────
 KAFKA_BOOTSTRAP_SERVERS = os.environ.get("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 KAFKA_ENABLED = os.environ.get("KAFKA_ENABLED", "true").lower() == "true"
 KAFKA_CONSUMER_GROUP_ID = "notification-service-consumers"
 
-# ─── EMAIL ────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
@@ -209,7 +197,6 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "Haven Rentals <noreply@haven.local>"
 )
 
-# ─── NOTIFICATION SETTINGS ────────────────────────────────────────────────────
 # How long to keep offline user notifications before sending email (seconds)
 NOTIFICATION_EMAIL_DELAY_SECONDS = int(
     os.environ.get("NOTIFICATION_EMAIL_DELAY_SECONDS", "300")  # 5 minutes
@@ -217,22 +204,18 @@ NOTIFICATION_EMAIL_DELAY_SECONDS = int(
 # Max notifications to return per page in API
 NOTIFICATION_PAGE_SIZE = int(os.environ.get("NOTIFICATION_PAGE_SIZE", "20"))
 
-# ─── INTERNATIONALISATION ─────────────────────────────────────────────────────
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-# ─── STATIC ───────────────────────────────────────────────────────────────────
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.UUIDField"
 
-# ─── CSRF ─────────────────────────────────────────────────────────────────────
 CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
-# ─── LOGGING ──────────────────────────────────────────────────────────────────
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -272,7 +255,6 @@ LOGGING = {
 }
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
 SPECTACULAR_SETTINGS = {
     "TITLE": "Notification Service API",
     "DESCRIPTION": """Handles resilient delivery of emails and real-time push notifications. 

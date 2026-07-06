@@ -20,7 +20,6 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─── SECURITY ─────────────────────────────────────────────────────────────────
 SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise ImproperlyConfigured("SECRET_KEY environment variable is required")
@@ -32,7 +31,6 @@ if not JWT_SECRET_KEY:
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
-# ─── INSTALLED APPS ───────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     "drf_spectacular",
     "django.contrib.admin",
@@ -48,7 +46,6 @@ INSTALLED_APPS = [
     "chat.apps.ChatConfig",
 ]
 
-# ─── MIDDLEWARE ───────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -77,13 +74,11 @@ TEMPLATES = [
     },
 ]
 
-# ─── ASGI / WSGI ─────────────────────────────────────────────────────────────
 # ASGI_APPLICATION is set so Django Channels wraps the ASGI app with its router.
 # Daphne reads config.asgi:application and routes HTTP vs WebSocket accordingly.
 ASGI_APPLICATION = "config.asgi.application"
 WSGI_APPLICATION = "config.wsgi.application"
 
-# ─── CHANNEL LAYERS (Redis pub/sub backend) ───────────────────────────────────
 # Uses Redis DB 3 — distinct from Celery broker (DB 1) and result backend (DB 2).
 # Every chat_service replica connects to the same Redis Channel Layer, which means
 # a message sent on replica A is broadcast to all clients on replica B as well.
@@ -102,7 +97,6 @@ CHANNEL_LAYERS = {
     },
 }
 
-# ─── REST FRAMEWORK ───────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -137,7 +131,6 @@ REST_FRAMEWORK = {
     },
 }
 
-# ─── CORS ─────────────────────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_METHODS = ["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"]
 CORS_ALLOW_HEADERS = [
@@ -152,7 +145,6 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# ─── DATABASE ─────────────────────────────────────────────────────────────────
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5432")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -182,7 +174,6 @@ DATABASES = {
 
 DATABASE_ROUTERS = ["config.db_router.ChatRouter"]
 
-# ─── REDIS (for django-redis cache) ───────────────────────────────────────────
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
 CACHES = {
@@ -198,7 +189,6 @@ CACHES = {
     }
 }
 
-# ─── CELERY ───────────────────────────────────────────────────────────────────
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/1")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/2")
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -210,7 +200,6 @@ CELERY_TASK_TIME_LIMIT = 30
 CELERY_TASK_SOFT_TIME_LIMIT = 20
 CELERY_TASK_DEFAULT_QUEUE = "chat_notifications"
 
-# ─── INTER-SERVICE URLs ───────────────────────────────────────────────────────
 LISTINGS_SERVICE_URL = os.environ.get(
     "LISTINGS_SERVICE_URL", "http://listings_service:8000"
 )
@@ -221,7 +210,6 @@ PROFILE_SERVICE_URL = os.environ.get(
     "PROFILE_SERVICE_URL", "http://profile_service:8000"
 )
 
-# ─── CHAT-SPECIFIC CONFIG ─────────────────────────────────────────────────────
 # Presence TTL: Redis key expires after this many seconds if no heartbeat
 CHAT_PRESENCE_TTL_SECONDS = int(os.environ.get("CHAT_PRESENCE_TTL_SECONDS", "35"))
 # Heartbeat interval: client must send heartbeat every N seconds
@@ -240,7 +228,6 @@ CHAT_MAX_ATTACHMENT_SIZE = int(
     os.environ.get("CHAT_MAX_ATTACHMENT_SIZE", str(10 * 1024 * 1024))
 )
 
-# ─── EMAIL (for future offline notification support) ──────────────────────────
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
 )
@@ -253,22 +240,18 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "Haven Rentals <noreply@haven.local>"
 )
 
-# ─── INTERNATIONALISATION ─────────────────────────────────────────────────────
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-# ─── STATIC ───────────────────────────────────────────────────────────────────
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# ─── CSRF / FORWARDED HEADERS ─────────────────────────────────────────────────
 CSRF_TRUSTED_ORIGINS = ["http://localhost:8000", "http://127.0.0.1:8000"]
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
-# ─── LOGGING ──────────────────────────────────────────────────────────────────
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -299,7 +282,6 @@ LOGGING = {
 }
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
 SPECTACULAR_SETTINGS = {
     "TITLE": "Chat Service API",
     "DESCRIPTION": """Real-time chat functionality between users. 

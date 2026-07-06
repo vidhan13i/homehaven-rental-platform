@@ -19,7 +19,6 @@ logger = logging.getLogger("chat.services.presence")
 class PresenceService:
     """Business logic for user online/offline status."""
 
-    # ── Sync versions (for REST API views and Celery tasks) ───────────────────
 
     @staticmethod
     def set_online(user_id: str) -> None:
@@ -48,7 +47,6 @@ class PresenceService:
         """Quick online check."""
         return PresenceRepository.is_online(user_id)
 
-    # ── Async versions (for AsyncWebsocketConsumer) ───────────────────────────
 
     @staticmethod
     async def async_set_online(user_id: str) -> None:

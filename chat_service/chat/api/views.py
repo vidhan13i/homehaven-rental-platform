@@ -56,7 +56,6 @@ from chat.api.pagination import ChatPagination, MessagePagination
 logger = logging.getLogger("chat.api.views")
 
 
-# ─── Conversation ViewSet ─────────────────────────────────────────────────────
 
 from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiExample
 
@@ -233,7 +232,6 @@ class ConversationViewSet(viewsets.ModelViewSet):
         return Response({"unread_count": count})
 
 
-# ─── Message ViewSet ──────────────────────────────────────────────────────────
 
 
 @extend_schema_view(
@@ -539,7 +537,6 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-# ─── Presence View ────────────────────────────────────────────────────────────
 
 
 class PresenceView(APIView):
@@ -556,7 +553,6 @@ class PresenceView(APIView):
         return Response(presence_data)
 
 
-# ─── Health View ──────────────────────────────────────────────────────────────
 
 
 class HealthView(APIView):
@@ -576,7 +572,6 @@ class HealthView(APIView):
         }
         overall_ok = True
 
-        # ── Check PostgreSQL ──────────────────────────────────────────────────
         try:
             from django.db import connections
 
@@ -586,7 +581,6 @@ class HealthView(APIView):
             health["checks"]["database"] = f"error: {str(exc)}"
             overall_ok = False
 
-        # ── Check Redis Channel Layer ─────────────────────────────────────────
         try:
             import redis
             from django.conf import settings
@@ -600,7 +594,6 @@ class HealthView(APIView):
             health["checks"]["channel_layer"] = f"error: {str(exc)}"
             overall_ok = False
 
-        # ── Check Redis Cache ─────────────────────────────────────────────────
         try:
             import redis
             from django.conf import settings
