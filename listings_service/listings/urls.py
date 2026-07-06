@@ -39,13 +39,10 @@ urlpatterns = [
 
 
 """
-═══════════════════════════════════════════════════════════════════════════════
  COMPLETE API ENDPOINT MAP
  (All routed via Nginx gateway on http://localhost:8000)
-═══════════════════════════════════════════════════════════════════════════════
 
  LISTINGS (/api/listings/)
- ─────────────────────────────────────────────────────────────────────────────
   GET    /api/listings/                     → List all listings (paginated)
   POST   /api/listings/                     → Create a new listing
   GET    /api/listings/{id}/               → Get listing detail (with unit data)
@@ -62,7 +59,6 @@ urlpatterns = [
   GET    /api/listings/public/{id}/         → Public single listing
 
  UNITS (/api/listings/units/)
- ─────────────────────────────────────────────────────────────────────────────
   GET    /api/listings/units/               → List all units
   POST   /api/listings/units/               → Create a new unit
   GET    /api/listings/units/{id}/          → Unit detail (with images)
@@ -75,7 +71,6 @@ urlpatterns = [
   POST   /api/listings/units/{id}/add_image/→ Add an image to this unit
 
  AGENTS (/api/listings/agents/)
- ─────────────────────────────────────────────────────────────────────────────
   GET    /api/listings/agents/              → List all agents
   POST   /api/listings/agents/              → Register a new agent
   GET    /api/listings/agents/{id}/         → Agent detail (with images)
@@ -91,7 +86,6 @@ urlpatterns = [
   GET    /api/listings/agents/stats/         → Agent statistics
 
  IMAGES (standalone CRUD)
- ─────────────────────────────────────────────────────────────────────────────
   GET/POST/PUT/DELETE  /api/listings/unit-images/    → Unit image CRUD
   GET/POST/PUT/DELETE  /api/listings/agent-images/   → Agent image CRUD
 """

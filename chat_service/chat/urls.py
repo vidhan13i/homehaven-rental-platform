@@ -4,7 +4,6 @@ REST URL configuration for chat_service.
 All URLs are prefixed with /api/chat/ (applied in config/urls.py).
 
 Endpoint map:
-──────────────────────────────────────────────────────────────────────
  CONVERSATIONS
  GET    /api/chat/conversations/                  → list (paginated)
  POST   /api/chat/conversations/                  → create
@@ -33,7 +32,6 @@ Endpoint map:
 
  HEALTH
  GET    /api/chat/health/                         → service health check
-──────────────────────────────────────────────────────────────────────
 """
 
 from django.urls import path, include

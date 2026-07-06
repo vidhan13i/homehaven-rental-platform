@@ -20,7 +20,6 @@ if not JWT_SECRET_KEY:
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
-──
 INSTALLED_APPS = [
     "drf_spectacular",
     "django.contrib.admin",
@@ -35,7 +34,6 @@ INSTALLED_APPS = [
     "corsheaders",
 ]
 
-────
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",

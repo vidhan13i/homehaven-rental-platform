@@ -32,13 +32,10 @@ urlpatterns = [
 
 
 """
-═══════════════════════════════════════════════════════════════════════════════
  COMPLETE API ENDPOINT MAP
  (All routed via Nginx gateway on http://localhost:8000)
-═══════════════════════════════════════════════════════════════════════════════
 
  BUILDINGS (/api/buildings/)
- ─────────────────────────────────────────────────────────────────────────────
   GET    /api/buildings/buildings/               → List all buildings
   POST   /api/buildings/buildings/               → Create a new building
   GET    /api/buildings/buildings/{id}/          → Building detail (with images)
@@ -57,6 +54,5 @@ urlpatterns = [
   GET    /api/buildings/buildings/public/{slug}/ → Public detail (by slug)
 
  BUILDING IMAGES (standalone CRUD)
- ─────────────────────────────────────────────────────────────────────────────
   GET/POST/PUT/DELETE  /api/buildings/building-images/ → Image CRUD
 """
