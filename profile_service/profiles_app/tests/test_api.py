@@ -19,11 +19,7 @@ def test_create_profile(mock_send_event, api_client):
         "gender": "M"
     }
     
-    # Needs valid auth header according to common.authentication
-    # In auth_service we have User model, but common.authentication checks JWT.
-    # We can mock the authentication globally for this test, or use the test client with a dummy token 
-    # if it doesn't do deep validation, but actually it connects to Redis.
-    # We'll just mock the DRF permission/auth classes to bypass token verification for pure API testing.
+    # Mock auth to bypass JWT verification for unit tests
     
     with patch('rest_framework.permissions.IsAuthenticated.has_permission', return_value=True), \
          patch('common.authentication.JWTAuthentication.authenticate', return_value=(type('User', (), {'id': 'user123'})(), None)):

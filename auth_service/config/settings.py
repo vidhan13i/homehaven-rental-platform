@@ -59,7 +59,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# ─── DATABASE CONFIGURATION ──────────────────────────────────────────────────
+# Database
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5433")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -87,10 +87,10 @@ DATABASES = {
 
 DATABASE_ROUTERS = ["config.db_router.AuthRouter"]
 
-# Custom User Model with UUID Primary Key
+
 AUTH_USER_MODEL = "authentication.User"
 
-# ─── REST FRAMEWORK & SIMPLE JWT ──────────────────────────────────────────────
+# REST Framework & SimpleJWT
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -114,7 +114,7 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
-# ─── INTER-SERVICE URLs ───────────────────────────────────────────────────────
+# Inter-service URLs
 PROFILE_SERVICE_URL = os.environ.get(
     "PROFILE_SERVICE_URL", "http://profile_service:8000"
 )
@@ -144,7 +144,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
+# DRF Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "Auth Service API",
     "DESCRIPTION": """Authentication and Authorization service handling user registration and JWTs.""",

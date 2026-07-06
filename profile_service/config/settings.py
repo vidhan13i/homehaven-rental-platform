@@ -86,7 +86,7 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
-    # Rate limiting — applied per-view via throttle_classes
+
     "DEFAULT_THROTTLE_RATES": {
         "otp_request": "5/hour",  # max 5 OTP requests per IP per hour
         "otp_verify": "10/hour",  # max 10 verify attempts per IP per hour
@@ -100,7 +100,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
 ]
 
-# ─── INTER-SERVICE URLs ────────────────────────────────────────────────────────
+# Inter-service URLs
 BUILDING_SERVICE_URL = os.environ.get(
     "BUILDING_SERVICE_URL", "http://building_service:8000"
 )
@@ -111,7 +111,7 @@ REVIEWS_SERVICE_URL = os.environ.get(
     "REVIEWS_SERVICE_URL", "http://reviews_service:8000"
 )
 
-# ─── DATABASE ──────────────────────────────────────────────────────────────────
+# Database
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = os.environ.get("DB_PORT", "5432")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -139,7 +139,7 @@ DATABASES = {
 
 DATABASE_ROUTERS = ["config.db_router.ProfilesRouter"]
 
-# ─── REDIS ─────────────────────────────────────────────────────────────────────
+# Redis
 REDIS_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
 CACHES = {
@@ -155,7 +155,7 @@ CACHES = {
     }
 }
 
-# ─── CELERY ────────────────────────────────────────────────────────────────────
+# Celery
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/1")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/2")
 CELERY_ACCEPT_CONTENT = ["json"]
@@ -166,8 +166,8 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30  # hard kill task after 30s
 CELERY_TASK_SOFT_TIME_LIMIT = 20  # raise SoftTimeLimitExceeded after 20s
 
-# ─── EMAIL ─────────────────────────────────────────────────────────────────────
-# Use SMTP in prod; console backend in dev when EMAIL_BACKEND is not set
+# Email
+# Console backend in dev, SMTP in prod
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND",
     "django.core.mail.backends.console.EmailBackend",  # prints to stdout in dev
@@ -181,7 +181,7 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL", "Haven Rentals <noreply@haven.local>"
 )
 
-# ─── OTP CONFIG ────────────────────────────────────────────────────────────────
+# OTP
 OTP_EXPIRY_SECONDS = int(os.environ.get("OTP_EXPIRY_SECONDS", "300"))  # 5 minutes
 OTP_REDIS_KEY_PREFIX = "otp"
 
@@ -205,7 +205,7 @@ USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
 
-# ─── DRF SPECTACULAR ──────────────────────────────────────────────────────────
+# DRF Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "Profile Service API",
     "DESCRIPTION": """Manages detailed tenant profiles and OTP verifications.""",

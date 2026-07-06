@@ -68,7 +68,7 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Step 1: Create Profile in profile_service
+
         try:
             url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/profiles/"
             profile_payload = {
@@ -77,8 +77,8 @@ class RegisterView(generics.CreateAPIView):
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "email": user.email,
-                "DOB": "2000-01-01",  # default DOB required by profile service
-                "gender": "P",  # default choices ('P' for Prefer Not to Say)
+                "DOB": "2000-01-01",
+                "gender": "P",
                 "is_email_verified": False,
             }
             resp = make_resilient_request(
@@ -105,7 +105,7 @@ class RegisterView(generics.CreateAPIView):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        # Step 2: Request OTP automatically
+
         try:
             otp_url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/otp/request_otp/"
             make_resilient_request(
@@ -151,7 +151,6 @@ class RegisterView(generics.CreateAPIView):
                 key=str(user.id),
             )
         except Exception as exc:
-            # Never let Kafka failures block the registration response
             logger.error("Failed to publish UserRegistered event: %s", exc)
 
 
@@ -159,16 +158,16 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        # Custom claims
+
         token["username"] = user.username
         token["email"] = user.email
         return token
 
     def validate(self, attrs):
-        # Authenticate credentials using standard simplejwt logic
+
         data = super().validate(attrs)
 
-        # Check OTP verification status in profile service
+
         email = self.user.email
         try:
             url = f"{settings.PROFILE_SERVICE_URL}/api/profiles/profiles/by-email/?email={email}"

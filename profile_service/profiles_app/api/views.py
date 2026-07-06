@@ -244,11 +244,9 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
         otp = "".join(random.choices(string.digits, k=6))
         otp_hash = make_password(otp)
 
-        # Store hash in Redis with a 5-minute (300 seconds) expiration
         redis_key = f"{settings.OTP_REDIS_KEY_PREFIX}:{email}"
         cache.set(redis_key, otp_hash, timeout=settings.OTP_EXPIRY_SECONDS)
 
-        # Trigger Celery task to send OTP email asynchronously
         send_otp_email.delay(email, otp)
 
         return Response(
@@ -271,7 +269,6 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
         # Check existing attempts
         attempts = cache.get(attempts_key) or 0
         if attempts >= 5:
-            # Delete OTP immediately once attempt limit is exceeded
             cache.delete(redis_key)
             cache.delete(attempts_key)
             return Response(
@@ -301,7 +298,6 @@ class EmailOTPViewSet(viewsets.GenericViewSet):
         except Profile.DoesNotExist:
             pass  # OTP verified but no profile yet — that's okay
 
-        # Delete used OTP and attempts counter from Redis
         cache.delete(redis_key)
         cache.delete(attempts_key)
 
