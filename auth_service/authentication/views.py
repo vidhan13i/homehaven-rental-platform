@@ -231,14 +231,16 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 {"message": "Profile service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
+
+
 @extend_schema(
     summary="Validate JWT Token",
     description="Checks if the provided Bearer token is valid and returns the associated user information.",
     tags=["Authentication"],
     responses={
         200: OpenApiResponse(description="Token is valid"),
-        401: OpenApiResponse(description="Token is invalid or expired")
-    }
+        401: OpenApiResponse(description="Token is invalid or expired"),
+    },
 )
 class ValidateTokenView(APIView):
     # This automatically rejects requests without a valid token (401 Unauthorized)

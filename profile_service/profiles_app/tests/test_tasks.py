@@ -12,11 +12,12 @@ def test_send_otp_email():
 
 
 def test_send_profile_creation_event():
-    with patch("shared_lib.kafka.producer.KafkaEventProducer") as mock_producer_class:
+    # Patch the exact instance variable used in tasks.py
+    with patch("profiles_app.tasks._kafka_producer.publish_async") as mock_publish_async:
         send_profile_creation_event(
             user_id="user123",
             email="test@example.com",
             first_name="John",
             last_name="Doe",
         )
-        mock_producer_class.return_value.publish_async.assert_called_once()
+        mock_publish_async.assert_called_once()

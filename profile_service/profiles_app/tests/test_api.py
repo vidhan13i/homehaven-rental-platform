@@ -29,7 +29,7 @@ def test_create_profile(mock_send_event, api_client):
         "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": "user123"})(), None),
     ):
-        response = api_client.post("/profile/create/", payload, format="json")
+        response = api_client.post("/api/profiles/profiles/", payload, format="json")
         assert response.status_code == 201
         assert response.data["first_name"] == "Test"
         mock_send_event.delay.assert_called_once()
@@ -52,6 +52,6 @@ def test_get_profile(api_client):
         "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": "user123"})(), None),
     ):
-        response = api_client.get(f"/profile/{profile.userID}/")
+        response = api_client.get(f"/api/profiles/profiles/{profile.id}/")
         assert response.status_code == 200
         assert response.data["email"] == "test@example.com"

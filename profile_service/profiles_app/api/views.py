@@ -20,7 +20,7 @@ from profiles_app.api.serializers import (
     EmailOTPRequestSerializer,
     EmailOTPVerifySerializer,
 )
-from profiles_app.tasks import send_otp_email
+from profiles_app.tasks import send_otp_email, send_profile_creation_event
 from profiles_app.throttles import OTPRequestThrottle, OTPVerifyThrottle
 from drf_spectacular.utils import (
     extend_schema_view,
@@ -101,6 +101,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "first_name", "last_name"]
     ordering = ["-created_at"]
 
+
     def get_permissions(self):
         if self.action in ["create", "by_email"]:
             return [AllowAny()]
@@ -112,6 +113,19 @@ class ProfileViewSet(viewsets.ModelViewSet):
         elif self.action in ["create", "update", "partial_update"]:
             return ProfileCreateUpdateSerializer
         return ProfileSerializer
+
+    def perform_create(self, serializer):
+        # 1. Save the profile to the database
+        profile = serializer.save()
+
+        # 2. Trigger the Celery task to publish the Kafka event
+        send_profile_creation_event.delay(
+            user_id=str(profile.id),
+            email=profile.email,
+            first_name=profile.first_name,
+            last_name=profile.last_name
+        )
+
 
     @action(detail=False, methods=["get"], url_path="by-email")
     def by_email(self, request):
