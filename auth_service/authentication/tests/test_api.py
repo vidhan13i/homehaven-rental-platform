@@ -13,7 +13,9 @@ def api_client():
 @pytest.mark.django_db(databases=["default", "auth_db"])
 @patch("authentication.views.make_resilient_request")
 def test_register_api(mock_make_resilient_request, api_client):
-    mock_response = type('Response', (), {'status_code': 201, 'json': lambda self: {}, 'text': ''})()
+    mock_response = type(
+        "Response", (), {"status_code": 201, "json": lambda self: {}, "text": ""}
+    )()
     mock_make_resilient_request.return_value = mock_response
     payload = {
         "username": "apiuser",
@@ -24,13 +26,23 @@ def test_register_api(mock_make_resilient_request, api_client):
     }
     response = api_client.post("/api/auth/register/", payload, format="json")
     assert response.status_code == 201
-    assert response.data["message"] == "OTP sent successfully. Please verify your email."
+    assert (
+        response.data["message"] == "OTP sent successfully. Please verify your email."
+    )
 
 
 @pytest.mark.django_db(databases=["default", "auth_db"])
 @patch("authentication.views.make_resilient_request")
 def test_login_api_success(mock_make_resilient_request, api_client):
-    mock_response = type('Response', (), {'status_code': 200, 'json': lambda self: {'is_email_verified': True}, 'text': ''})()
+    mock_response = type(
+        "Response",
+        (),
+        {
+            "status_code": 200,
+            "json": lambda self: {"is_email_verified": True},
+            "text": "",
+        },
+    )()
     mock_make_resilient_request.return_value = mock_response
     User.objects.create_user(
         username="loginuser",
@@ -49,7 +61,15 @@ def test_login_api_success(mock_make_resilient_request, api_client):
 @pytest.mark.django_db(databases=["default", "auth_db"])
 @patch("authentication.views.make_resilient_request")
 def test_login_api_failure(mock_make_resilient_request, api_client):
-    mock_response = type('Response', (), {'status_code': 200, 'json': lambda self: {'is_email_verified': True}, 'text': ''})()
+    mock_response = type(
+        "Response",
+        (),
+        {
+            "status_code": 200,
+            "json": lambda self: {"is_email_verified": True},
+            "text": "",
+        },
+    )()
     mock_make_resilient_request.return_value = mock_response
     User.objects.create_user(
         username="loginuser", email="login@example.com", password="securepassword123"
@@ -63,7 +83,15 @@ def test_login_api_failure(mock_make_resilient_request, api_client):
 @pytest.mark.django_db(databases=["default", "auth_db"])
 @patch("authentication.views.make_resilient_request")
 def test_validate_token_api(mock_make_resilient_request, api_client):
-    mock_response = type('Response', (), {'status_code': 200, 'json': lambda self: {'is_email_verified': True}, 'text': ''})()
+    mock_response = type(
+        "Response",
+        (),
+        {
+            "status_code": 200,
+            "json": lambda self: {"is_email_verified": True},
+            "text": "",
+        },
+    )()
     mock_make_resilient_request.return_value = mock_response
     user = User.objects.create_user(
         username="validuser", email="valid@example.com", password="securepassword123"
