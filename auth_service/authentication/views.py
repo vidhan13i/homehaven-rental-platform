@@ -5,6 +5,8 @@ from rest_framework import status, generics, exceptions
 from rest_framework.response import Response
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import (
     extend_schema_view,
     extend_schema,
@@ -229,3 +231,30 @@ class MyTokenObtainPairView(TokenObtainPairView):
                 {"message": "Profile service temporarily unavailable"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
+@extend_schema(
+    summary="Validate JWT Token",
+    description="Checks if the provided Bearer token is valid and returns the associated user information.",
+    tags=["Authentication"],
+    responses={
+        200: OpenApiResponse(description="Token is valid"),
+        401: OpenApiResponse(description="Token is invalid or expired")
+    }
+)
+class ValidateTokenView(APIView):
+    # This automatically rejects requests without a valid token (401 Unauthorized)
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # If the code reaches here, the token is valid!
+        return Response(
+            {
+                "valid": True,
+                "user": {
+                    "username": request.user.username,
+                    "email": request.user.email,
+                    "first_name": request.user.first_name,
+                    "last_name": request.user.last_name,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
