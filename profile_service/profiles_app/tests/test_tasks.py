@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from profiles_app.tasks import send_otp_email, send_profile_creation_event
 from unittest.mock import patch
@@ -17,7 +18,7 @@ def test_send_profile_creation_event():
         "profiles_app.tasks._kafka_producer.publish_async"
     ) as mock_publish_async:
         send_profile_creation_event(
-            user_id="user123",
+            userID=uuid.UUID("11111111-1111-1111-1111-111111111111"),
             email="test@example.com",
             first_name="John",
             last_name="Doe",

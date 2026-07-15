@@ -5,8 +5,7 @@ import pytest
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from application.models.application import Application
-from application.models.applicant import Applicant
+
 
 
 @pytest.fixture

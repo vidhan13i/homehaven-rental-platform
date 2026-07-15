@@ -63,7 +63,12 @@ def test_create_application(mock_publish, api_client, applicant):
 
         assert response.data["applicant_ID"] == applicant.id
         assert response.data["lease_term"] == "12 months"
-        assert response.data["application_status"] == "draft"
+        application = Application.objects.get(id=response.data["id"])
+
+        assert (
+                application.application_status
+                == Application.ApplicationStatus.DRAFT
+        )
 
         mock_publish.assert_called_once()
 

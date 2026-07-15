@@ -10,6 +10,6 @@ SELECT * FROM profiles_app_profile WHERE email = 'test@example.com';
 
 -- 3. Benchmark fetching unread notifications for a user
 EXPLAIN ANALYZE
-SELECT * FROM notification_notification WHERE user_id = 'user123' AND is_read = false ORDER BY created_at DESC;
+SELECT * FROM notification_notification WHERE user_id = '11111111-1111-1111-1111-111111111111' AND is_read = false ORDER BY created_at DESC;
 
 -- Note: The exact table names depend on Django's default app_model naming convention.
