@@ -101,7 +101,6 @@ class ProfileViewSet(viewsets.ModelViewSet):
     ordering_fields = ["created_at", "first_name", "last_name"]
     ordering = ["-created_at"]
 
-
     def get_permissions(self):
         if self.action in ["create", "by_email"]:
             return [AllowAny()]
@@ -123,9 +122,8 @@ class ProfileViewSet(viewsets.ModelViewSet):
             user_id=str(profile.id),
             email=profile.email,
             first_name=profile.first_name,
-            last_name=profile.last_name
+            last_name=profile.last_name,
         )
-
 
     @action(detail=False, methods=["get"], url_path="by-email")
     def by_email(self, request):

@@ -13,7 +13,9 @@ def test_send_otp_email():
 
 def test_send_profile_creation_event():
     # Patch the exact instance variable used in tasks.py
-    with patch("profiles_app.tasks._kafka_producer.publish_async") as mock_publish_async:
+    with patch(
+        "profiles_app.tasks._kafka_producer.publish_async"
+    ) as mock_publish_async:
         send_profile_creation_event(
             user_id="user123",
             email="test@example.com",
