@@ -31,7 +31,7 @@ def test_list_units(api_client, agent):
         no_bedrooms=2,
         no_bathrooms=1,
         agent_ID=agent,
-        building_ID=uuid.uuid4(),
+        building_id=uuid.uuid4(),
     )
 
     response = api_client.get("/listings/units/")
@@ -49,13 +49,13 @@ def test_create_unit(api_client, agent):
         "no_bedrooms": 3,
         "no_bathrooms": 2,
         "agent_ID": str(agent.id),
-        "building_ID": str(uuid.uuid4()),
+        "building_id": str(uuid.uuid4()),
     }
 
     with patch(
         "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
     ), patch(
-        "common.authentication.JWTAuthentication.authenticate",
+        "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": "user123"})(), None),
     ):
         response = api_client.post("/listings/units/", payload, format="json")
