@@ -31,7 +31,7 @@ def test_list_units(api_client, agent):
         no_bedrooms=2,
         no_bathrooms=1,
         agent_ID=agent,
-        building_id=uuid.uuid4(),
+        building=uuid.uuid4(),
     )
 
     response = api_client.get("/listings/units/")
@@ -49,7 +49,7 @@ def test_create_unit(api_client, agent):
         "no_bedrooms": 3,
         "no_bathrooms": 2,
         "agent_ID": str(agent.id),
-        "building_id": str(uuid.uuid4()),
+        "building": str(uuid.uuid4()),
     }
 
     with patch(

@@ -25,7 +25,7 @@ def test_unit_creation(agent):
         no_bedrooms=2,
         no_bathrooms=1,
         agent_ID=agent,
-        building_id=uuid.uuid4(),
+        building=uuid.uuid4(),
     )
     assert unit.full_address == "123 Test St"
     assert unit.is_furnished is False
@@ -41,5 +41,5 @@ def test_unit_constraint_furnished(agent):
             is_furnished=True,
             is_semi_furnished=True,
             agent_ID=agent,
-            building_id=uuid.uuid4(),
+            building=uuid.uuid4(),
         )
