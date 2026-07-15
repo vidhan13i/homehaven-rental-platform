@@ -10,12 +10,16 @@ def api_client():
     return APIClient()
 
 
+MOCK_USER_ID = "11111111-1111-1111-1111-111111111111"
+
+
 @pytest.mark.django_db(databases=["default", "notification"])
 def test_create_notification(api_client):
     payload = {
         "title": "Test Alert",
         "message": "This is a test notification",
-        "notification_type": "alert",
+        "notification_type": "system",
+        "recipient_id": MOCK_USER_ID,
     }
 
     with patch(
@@ -23,7 +27,7 @@ def test_create_notification(api_client):
     ), patch(
         "notification.authentication.http.TrustedJWTAuthentication.authenticate",
         return_value=(
-            type("User", (), {"id": "11111111-1111-1111-1111-111111111111"})(),
+            type("User", (), {"id": MOCK_USER_ID})(),
             None,
         ),
     ):
@@ -35,10 +39,10 @@ def test_create_notification(api_client):
 @pytest.mark.django_db(databases=["default", "notification"])
 def test_get_notifications(api_client):
     Notification.objects.create(
-        recipient_id=uuid.uuid4(),
+        recipient_id=uuid.UUID(MOCK_USER_ID),
         title="Test Alert",
         message="This is a test notification",
-        notification_type="alert",
+        notification_type="system",
     )
 
     with patch(
@@ -46,7 +50,7 @@ def test_get_notifications(api_client):
     ), patch(
         "notification.authentication.http.TrustedJWTAuthentication.authenticate",
         return_value=(
-            type("User", (), {"id": "11111111-1111-1111-1111-111111111111"})(),
+            type("User", (), {"id": MOCK_USER_ID})(),
             None,
         ),
     ):
