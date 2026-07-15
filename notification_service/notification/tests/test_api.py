@@ -22,7 +22,10 @@ def test_create_notification(api_client):
         "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
     ), patch(
         "notification.authentication.http.TrustedJWTAuthentication.authenticate",
-        return_value=(type("User", (), {"id": "11111111-1111-1111-1111-111111111111"})(), None),
+        return_value=(
+            type("User", (), {"id": "11111111-1111-1111-1111-111111111111"})(),
+            None,
+        ),
     ):
         response = api_client.post("/api/notifications/list/", payload, format="json")
         assert response.status_code == 201
@@ -42,7 +45,10 @@ def test_get_notifications(api_client):
         "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
     ), patch(
         "notification.authentication.http.TrustedJWTAuthentication.authenticate",
-        return_value=(type("User", (), {"id": "11111111-1111-1111-1111-111111111111"})(), None),
+        return_value=(
+            type("User", (), {"id": "11111111-1111-1111-1111-111111111111"})(),
+            None,
+        ),
     ):
         response = api_client.get("/api/notifications/list/")
         assert response.status_code == 200

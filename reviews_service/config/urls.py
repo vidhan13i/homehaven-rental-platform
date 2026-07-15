@@ -18,5 +18,8 @@ urlpatterns = [
     ),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     path("admin/reviews/", admin.site.urls),
-    path("api/reviews/", include("reviews.urls")),
+    path(
+        "api/reviews/",
+        include(("reviews.urls", "reviews_api"), namespace="reviews_api"),
+    ),
 ]

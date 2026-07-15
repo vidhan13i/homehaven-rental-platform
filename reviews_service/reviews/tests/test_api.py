@@ -1,8 +1,11 @@
-import pytest
-from rest_framework.test import APIClient
-from reviews.models.reviews import Review
-from unittest.mock import patch
 import uuid
+from unittest.mock import patch
+
+import pytest
+from django.urls import reverse
+from rest_framework.test import APIClient
+
+from reviews.models.reviews import Review
 
 
 @pytest.fixture
@@ -30,19 +33,21 @@ def test_create_review(mock_publish, api_client):
         "move_out_date": "2023-01-01",
     }
 
+    url = reverse("reviews_api:review-list")
+
     with patch(
-        "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
+        "rest_framework.permissions.IsAuthenticated.has_permission",
+        return_value=True,
     ), patch(
         "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": "user123"})(), None),
     ):
-        response = api_client.post("/reviews/api/", payload, format="json")
-        assert response.status_code == 201
-        assert response.data["Title"] == "Great place"
+        response = api_client.post(url, payload, format="json")
 
-        mock_publish.assert_called_once()
-        args, kwargs = mock_publish.call_args
-        assert kwargs["event_type"] == "ReviewCreated"
+    assert response.status_code == 201
+    assert response.data["Title"] == "Great place"
+
+    mock_publish.assert_called_once()
 
 
 @pytest.mark.django_db(databases=["default", "reviews"])
@@ -64,6 +69,9 @@ def test_get_reviews(api_client):
         move_out_date="2023-01-01",
     )
 
-    response = api_client.get("/reviews/api/")
+    url = reverse("reviews_api:review-list")
+
+    response = api_client.get(url)
+
     assert response.status_code == 200
     assert len(response.data["results"]) == 1

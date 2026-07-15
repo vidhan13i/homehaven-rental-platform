@@ -53,9 +53,8 @@ def test_create_application(mock_publish, api_client, applicant):
         "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": applicant.profile_ID})(), None),
     ):
-
         response = api_client.post(
-            "/applications/api/",
+            "/api/applications/applications/",
             payload,
             format="json",
         )
@@ -92,8 +91,7 @@ def test_get_applications(api_client, applicant):
         "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": applicant.profile_ID})(), None),
     ):
-
-        response = api_client.get("/applications/api/")
+        response = api_client.get("/api/applications/applications/")
 
         assert response.status_code == 200
         assert len(response.data["results"]) == 1
