@@ -31,7 +31,7 @@ def applicant():
 
 
 @pytest.mark.django_db(databases=["default", "application"])
-@patch("shared_lib.kafka.producer.KafkaEventProducer.publish")
+@patch("application.api.views._kafka_producer.publish")
 def test_create_application(mock_publish, api_client, applicant):
 
     payload = {
