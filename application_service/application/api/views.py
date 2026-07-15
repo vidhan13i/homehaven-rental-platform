@@ -84,6 +84,16 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             return ApplicationCreateSerializer
         return ApplicationSerializer
 
+    def perform_create(self, serializer):
+        application = serializer.save()
+
+        _publish_application_event(
+            event_type="ApplicationCreated",
+            topic=Topics.APPLICATIONS_CREATED,
+            application=application,
+            actor_id=str(self.request.user.id),
+        )
+
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
         """Approve a rental application."""
