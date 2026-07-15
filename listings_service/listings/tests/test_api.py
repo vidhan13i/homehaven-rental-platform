@@ -56,7 +56,7 @@ def test_create_unit(api_client, agent):
         "rest_framework.permissions.IsAuthenticated.has_permission", return_value=True
     ), patch(
         "common.authentication.TrustedJWTAuthentication.authenticate",
-        return_value=(type("User", (), {"id": "user123"})(), None),
+        return_value=(type("User", (), {"id": "11111111-1111-1111-1111-111111111111"})(), None),
     ):
         response = api_client.post("api/listings/units/", payload, format="json")
         assert response.status_code == 201
