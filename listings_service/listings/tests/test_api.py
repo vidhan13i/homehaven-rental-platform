@@ -31,10 +31,9 @@ def test_list_units(api_client, agent):
         no_bedrooms=2,
         no_bathrooms=1,
         agent_ID=agent,
-        building=uuid.uuid4(),
     )
 
-    response = api_client.get("api/listings/units/")
+    response = api_client.get("/api/listings/units/")
     assert response.status_code == 200
     assert len(response.data["results"]) == 1
     assert response.data["results"][0]["full_address"] == "123 Test St"
@@ -49,7 +48,6 @@ def test_create_unit(api_client, agent):
         "no_bedrooms": 3,
         "no_bathrooms": 2,
         "agent_ID": str(agent.id),
-        "building": str(uuid.uuid4()),
     }
 
     with patch(
@@ -61,6 +59,6 @@ def test_create_unit(api_client, agent):
             None,
         ),
     ):
-        response = api_client.post("api/listings/units/", payload, format="json")
+        response = api_client.post("/api/listings/units/", payload, format="json")
         assert response.status_code == 201
         assert response.data["full_address"] == "456 New St"
