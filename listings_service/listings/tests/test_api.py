@@ -34,7 +34,7 @@ def test_list_units(api_client, agent):
         building=uuid.uuid4(),
     )
 
-    response = api_client.get("/listings/units/")
+    response = api_client.get("api/listings/units/")
     assert response.status_code == 200
     assert len(response.data["results"]) == 1
     assert response.data["results"][0]["full_address"] == "123 Test St"
@@ -58,6 +58,6 @@ def test_create_unit(api_client, agent):
         "common.authentication.TrustedJWTAuthentication.authenticate",
         return_value=(type("User", (), {"id": "user123"})(), None),
     ):
-        response = api_client.post("/listings/units/", payload, format="json")
+        response = api_client.post("api/listings/units/", payload, format="json")
         assert response.status_code == 201
         assert response.data["full_address"] == "456 New St"
