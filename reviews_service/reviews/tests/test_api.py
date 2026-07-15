@@ -40,7 +40,12 @@ def test_create_review(mock_publish, api_client):
         return_value=True,
     ), patch(
         "common.authentication.TrustedJWTAuthentication.authenticate",
-        return_value=(type("User", (), {"id": uuid.UUID("11111111-1111-1111-1111-111111111111")})(), None),
+        return_value=(
+            type(
+                "User", (), {"id": uuid.UUID("11111111-1111-1111-1111-111111111111")}
+            )(),
+            None,
+        ),
     ):
         response = api_client.post(url, payload, format="json")
 

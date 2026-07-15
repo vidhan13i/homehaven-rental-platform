@@ -102,7 +102,7 @@ jobs:
           CHANNEL_LAYERS_REDIS_URL: redis://localhost:6379/3
           KAFKA_BOOTSTRAP_SERVERS: localhost:9092
         run: |
-          pytest --nomigrations --cov=. --cov-report=xml --junitxml=pytest-report.xml -v || ret=$?
+          pytest --cov=. --cov-report=xml --junitxml=pytest-report.xml -v || ret=$?
           if [ "${ret:-0}" -eq 5 ]; then
             echo "No tests found (Exit code 5). Passing gracefully."
             exit 0
