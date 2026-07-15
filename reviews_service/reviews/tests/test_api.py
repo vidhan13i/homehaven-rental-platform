@@ -14,7 +14,7 @@ def api_client():
 
 
 @pytest.mark.django_db(databases=["default", "reviews"])
-@patch("shared_lib.kafka.producer.KafkaEventProducer.publish")
+@patch("reviews.api.views._kafka_producer.publish_async")
 def test_create_review(mock_publish, api_client):
     payload = {
         "profile_ID": str(uuid.uuid4()),
